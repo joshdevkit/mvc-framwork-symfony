@@ -53,3 +53,79 @@ function redirect()
         }
     };
 }
+
+/**
+ * Generate a URL for an asset in the public/ directory.
+ *
+ * @param string $path
+ * @return string
+ */
+function asset(string $path): string
+{
+    $baseUrl = $_ENV['APP_URL'] ?? 'http://localhost';
+    return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+}
+
+
+/**
+ * Retrieve configuration values.
+ *
+ * @param string $key
+ * @param mixed $default
+ * @return mixed
+ */
+function config(string $key, $default = null)
+{
+    static $config = [];
+
+    if (empty($config)) {
+        // Load all config files
+        foreach (glob(__DIR__ . '/../../config/*.php') as $file) {
+            $name = basename($file, '.php');
+            $config[$name] = require $file;
+        }
+    }
+
+    // Parse dot notation (e.g., 'app.name')
+    $keys = explode('.', $key);
+    $value = $config;
+
+    foreach ($keys as $segment) {
+        if (isset($value[$segment])) {
+            $value = $value[$segment];
+        } else {
+            return $default;
+        }
+    }
+
+    return $value;
+}
+
+
+/**
+ * Retrieve the value of an environment variable or a default value.
+ *
+ * @param string $key
+ * @param mixed $default
+ * @return mixed
+ */
+function env(string $key, $default = null)
+{
+    static $env = [];
+
+    if (empty($env)) {
+        // Parse the .env file
+        $lines = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) {
+                continue; // Skip comments
+            }
+
+            [$name, $value] = array_map('trim', explode('=', $line, 2));
+            $value = trim($value, '"'); // Remove optional quotes
+            $env[$name] = $value;
+        }
+    }
+
+    return $env[$key] ?? $default;
+}

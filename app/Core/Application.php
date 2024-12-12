@@ -44,14 +44,18 @@ class Application
     public function setupBlade()
     {
         $viewsPath = __DIR__ . '/../../resources/views';
+        $layoutsPath = __DIR__ . '/../../resources/views/layouts';
         $cachePath = __DIR__ . '/../../storage/framework/cache';
 
         if (!is_dir($cachePath)) {
             mkdir($cachePath, 0777, true);
         }
 
-        self::$blade = new BladeOne($viewsPath, $cachePath, BladeOne::MODE_AUTO);
+
+        self::$blade = new BladeOne([$viewsPath, $layoutsPath], $cachePath, BladeOne::MODE_AUTO);
     }
+
+
 
     public static function renderView(string $view, array $data = [])
     {
