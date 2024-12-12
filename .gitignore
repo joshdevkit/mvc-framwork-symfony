@@ -1,0 +1,8 @@
+.env
+/vendor
+
+
+/storage/*.key 
+/storage/*.backup 
+/storage/app/public 
+/storage/framework
