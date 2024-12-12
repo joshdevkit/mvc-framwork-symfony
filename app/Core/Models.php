@@ -129,6 +129,40 @@ abstract class Models implements BaseModel
         return $instance;
     }
 
+
+    /** * Find a record by email. */
+    public static function findByEmail(string $email): ?self
+    {
+        $table = static::getTableName();
+        $sql = "SELECT * FROM {$table} WHERE email = ? LIMIT 1";
+        $stmt = self::conn()->prepare($sql);
+        $stmt->execute([$email]);
+        $result = $stmt->fetch();
+        if (!$result) {
+            return null;
+        }
+        $instance = new static();
+        foreach ($result as $key => $value) {
+            $instance->{$key} = $value;
+        }
+        return $instance;
+    }
+    /**
+     * Undocumented function
+     *
+     * @param string $table
+     * @param string $column
+     * @param [type] $value
+     * @return boolean
+     */
+    public static function exists(string $table, string $column, $value): bool
+    {
+        $pdo = self::conn();
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM {$table} WHERE {$column} = ?");
+        $stmt->execute([$value]);
+        return $stmt->fetchColumn() > 0;
+    }
+
     /**
      * Return the fillable properties.
      */

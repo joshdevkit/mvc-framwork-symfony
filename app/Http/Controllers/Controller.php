@@ -2,8 +2,17 @@
 
 namespace App\Http\Controllers;
 
-abstract class BaseController
+use App\Core\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+abstract class Controller
 {
+    protected $request;
+
+    public function __construct()
+    {
+        $this->request = Request::createFromGlobals();
+    }
 
     /**
      * Apply common middleware.
@@ -13,5 +22,15 @@ abstract class BaseController
     protected function middleware()
     {
         // Implement common middleware logic here
+    }
+
+    /**  Validate the request data against the given rules. 
+     *
+     * @param array $rules 
+     * @return array 
+     */
+    protected function validate(array $rules): array
+    {
+        return $this->request->validate($rules);
     }
 }

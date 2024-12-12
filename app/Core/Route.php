@@ -2,7 +2,7 @@
 
 namespace App\Core;
 
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
 
@@ -46,7 +46,9 @@ class Route
 
     public static function dispatch()
     {
-        $request = Request::createFromGlobals();
+        $request = SymfonyRequest::createFromGlobals();
+        $customRequest = Request::createFromSymfonyRequest($request);
+
         $requestUri = $request->getPathInfo();
         $requestMethod = $request->getMethod();
 
@@ -62,6 +64,7 @@ class Route
             case \FastRoute\Dispatcher::FOUND:
                 $handler = $routeInfo[1];
                 $vars = $routeInfo[2];
+                $vars[] = $customRequest; // Append the custom request object to the variables
                 if (is_callable($handler)) {
                     call_user_func_array($handler, $vars);
                 } else {

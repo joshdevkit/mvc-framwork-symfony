@@ -24,11 +24,10 @@
                     </li>
 
                     <li class="nav-item">
-                        <a href="" class="nav-link">Signin</a>
+                        <a href="{{ url('/signin') }}" class="nav-link">Signin</a>
                     </li>
                     <li class="nav-item">
-                        <a href="" class="nav-link">Signup</a>
-
+                        <a href="{{ url('/signup') }}" class="nav-link">Signup</a>
                     </li>
                 </ul>
             </div>
@@ -37,6 +36,7 @@
     <div class="container mt-5 py-5">
         @yield('content')
     </div>
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 </body>
 

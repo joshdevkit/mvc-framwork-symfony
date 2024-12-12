@@ -43,7 +43,7 @@ class Redirector
     {
         $backUrl = $_SERVER['HTTP_REFERER'] ?? '/';
         if (!empty($data)) {
-            $_SESSION['flash'] = $data;
+            $_SESSION['errors'] = $data;
         }
         return self::to($backUrl);
     }

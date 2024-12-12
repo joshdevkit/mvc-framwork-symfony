@@ -51,8 +51,64 @@ function redirect()
             $response->send();
             exit();
         }
+        /**
+         * Flash a message to the session.
+         */
+        public function with(string $key, $message)
+        {
+            $_SESSION[$key] = $message;
+            return $this;
+        }
     };
 }
+
+/**
+ * Handle session data.
+ *
+ * @param array|string|null $key
+ * @param mixed $default
+ * @return mixed
+ */
+function session($key = null, $default = null)
+{
+    if (is_array($key)) {
+        foreach ($key as $k => $value) {
+            $_SESSION[$k] = $value;
+        }
+    } elseif (is_string($key)) {
+        return $_SESSION[$key] ?? $default;
+    } elseif ($key === null) {
+        return $_SESSION;
+    }
+}
+
+/**
+ * Forget a session variable.
+ *
+ * @param string $key
+ */
+function session_forget(string $key)
+{
+    if (isset($_SESSION[$key])) {
+        unset($_SESSION[$key]);
+        error_log("Session key '$key' has been removed.");
+    }
+}
+
+
+/**
+ * Retrieve old input values from the session.
+ *
+ * @param string $key
+ * @param mixed $default
+ * @return mixed
+ */
+function old($key, $default = null)
+{
+    return $_SESSION['old_input'][$key] ?? $default;
+}
+
+
 
 /**
  * Generate a URL for an asset in the public/ directory.
@@ -62,7 +118,14 @@ function redirect()
  */
 function asset(string $path): string
 {
-    $baseUrl = $_ENV['APP_URL'] ?? 'http://localhost';
+    $baseUrl = $_ENV['APP_URL'];
+    return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
+}
+
+
+function url(string $path): string
+{
+    $baseUrl = $_ENV['APP_URL'];
     return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 }
 
@@ -79,14 +142,12 @@ function config(string $key, $default = null)
     static $config = [];
 
     if (empty($config)) {
-        // Load all config files
         foreach (glob(__DIR__ . '/../../config/*.php') as $file) {
             $name = basename($file, '.php');
             $config[$name] = require $file;
         }
     }
 
-    // Parse dot notation (e.g., 'app.name')
     $keys = explode('.', $key);
     $value = $config;
 
@@ -114,15 +175,14 @@ function env(string $key, $default = null)
     static $env = [];
 
     if (empty($env)) {
-        // Parse the .env file
         $lines = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             if (strpos(trim($line), '#') === 0) {
-                continue; // Skip comments
+                continue;
             }
 
             [$name, $value] = array_map('trim', explode('=', $line, 2));
-            $value = trim($value, '"'); // Remove optional quotes
+            $value = trim($value, '"');
             $env[$name] = $value;
         }
     }

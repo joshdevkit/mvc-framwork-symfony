@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Core\Middleware\MiddlewareStack;
 use eftec\bladeone\BladeOne;
 
 class Application
@@ -70,6 +71,14 @@ class Application
     {
         $this->setupBlade();
         $this->loadRoutes();
+
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $middlewareStack = new MiddlewareStack();
+        $middlewareStack->handle(Request::createFromGlobals());
+
         Route::initializeDispatcher();
         Route::dispatch();
     }
