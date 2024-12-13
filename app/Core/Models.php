@@ -148,7 +148,7 @@ abstract class Models implements BaseModel
         return $instance;
     }
     /**
-     * Undocumented function
+     * Check existense of certain record from database
      *
      * @param string $table
      * @param string $column

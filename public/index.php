@@ -18,7 +18,16 @@ $config = [
 ];
 
 $db = new Database($config);
-$conn = $db->connect();
+
+
+$sessionPath = __DIR__ . '/../storage/framework/sessions';
+if (!file_exists($sessionPath)) {
+    mkdir($sessionPath, 0777, true);
+}
+
+
+
+
 
 $app = new Application();
 

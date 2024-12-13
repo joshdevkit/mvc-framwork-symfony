@@ -40,8 +40,9 @@ class HomeController extends Controller
         $validated = $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8'
+            'password' => 'required|min:8|confirmed'
         ]);
+
 
         User::create([
             'name' => $validated['name'],

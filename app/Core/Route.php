@@ -64,15 +64,21 @@ class Route
             case \FastRoute\Dispatcher::FOUND:
                 $handler = $routeInfo[1];
                 $vars = $routeInfo[2];
-                $vars[] = $customRequest; // Append the custom request object to the variables
+
+                // Always include the customRequest object
+                $vars[] = $customRequest;
+
                 if (is_callable($handler)) {
-                    call_user_func_array($handler, $vars);
+                    call_user_func_array($handler, $vars); // Pass vars and request
                 } else {
-                    self::invokeController($handler, $vars);
+                    self::invokeController($handler, $vars); // Pass vars and request
                 }
                 break;
         }
     }
+
+
+
 
     private static function invokeController($action, $vars)
     {
@@ -83,8 +89,12 @@ class Route
             throw new \Exception("Method {$method} not found in controller " . get_class($controller));
         }
 
+        // Pass route parameters and the Request object to the controller method
         call_user_func_array([$controller, $method], $vars);
     }
+
+
+
 
     private static function send404()
     {

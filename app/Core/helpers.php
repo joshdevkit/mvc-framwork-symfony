@@ -3,6 +3,8 @@
 use App\Core\Application;
 use App\Core\Redirector;
 use App\Core\Response;
+use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 /**
  * Render a view with BladeOne.
@@ -14,8 +16,6 @@ function view(string $view, array $data = [])
 {
     Application::renderView($view, $data);
 }
-
-
 
 /**
  * Redirect to a URL.
@@ -54,10 +54,11 @@ function redirect()
         /**
          * Flash a message to the session.
          */
-        public function with(string $key, $message)
+        public function with($message)
         {
-            $_SESSION[$key] = $message;
-            return $this;
+            $response = Redirector::back($message);
+            $response->send();
+            exit();
         }
     };
 }
@@ -188,4 +189,35 @@ function env(string $key, $default = null)
     }
 
     return $env[$key] ?? $default;
+}
+
+
+/**
+ * Generate and retrieve the CSRF token. 
+ * 
+ * @param string $tokenId 
+ * @return string
+ */
+function csrf_token($tokenId = 'default'): string
+{
+    if (isset($_SESSION['csrf_tokens'][$tokenId])) {
+        return $_SESSION['csrf_tokens'][$tokenId];
+    }
+
+    static $csrfTokenManager;
+    if (!$csrfTokenManager) {
+        $csrfTokenManager = new CsrfTokenManager();
+    }
+
+    $token = $csrfTokenManager->getToken($tokenId);
+
+    if ($token && $token->getValue()) {
+        $_SESSION['csrf_tokens'][$tokenId] = substr($token->getValue(), 0, 40);
+        return $_SESSION['csrf_tokens'][$tokenId];
+    }
+
+    $tokenValue = bin2hex(random_bytes(20));
+    $_SESSION['csrf_tokens'][$tokenId] = $tokenValue;
+
+    return $tokenValue;
 }

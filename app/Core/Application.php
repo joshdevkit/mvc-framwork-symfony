@@ -52,9 +52,15 @@ class Application
             mkdir($cachePath, 0777, true);
         }
 
-
         self::$blade = new BladeOne([$viewsPath, $layoutsPath], $cachePath, BladeOne::MODE_AUTO);
+
+        self::$blade->directive('csrf', function () {
+            $csrfToken = csrf_token();
+            return "<?php echo '<input type=\"hidden\" name=\"_token\" value=\"' . htmlspecialchars('$csrfToken') . '\">'; ?>";
+        });
     }
+
+
 
 
 
@@ -69,12 +75,12 @@ class Application
 
     public function boot()
     {
-        $this->setupBlade();
-        $this->loadRoutes();
-
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
+
+        $this->loadRoutes();
+        $this->setupBlade();
 
         $middlewareStack = new MiddlewareStack();
         $middlewareStack->handle(Request::createFromGlobals());

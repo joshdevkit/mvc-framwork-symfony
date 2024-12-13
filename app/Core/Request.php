@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationList;
@@ -36,8 +37,30 @@ class Request extends SymfonyRequest
         return $this->getRequestUri();
     }
 
+    public function validateCsrfToken(): bool
+    {
+        $token = $this->request->get('_token');
+        $sessionToken = $_SESSION['csrf_tokens']['default'] ?? null;
+        if (!$token) {
+            return false;
+        }
+        return trim($sessionToken) === trim($token);
+    }
+
+
     public function validate(array $rules): array
     {
+        if (!$this->validateCsrfToken()) {
+            http_response_code(403);
+            $errorViewPath = __DIR__ . '/../../resources/views/errors/500.php';
+            if (file_exists($errorViewPath)) {
+                include $errorViewPath;
+            } else {
+                echo 'Error: CSRF validation failed!';
+            }
+            exit();
+        }
+
         $validator = Validation::createValidator();
         $constraints = $this->parseRules($rules);
         $data = array_merge($this->query->all(), $this->request->all());
@@ -60,9 +83,12 @@ class Request extends SymfonyRequest
     protected function parseRules(array $rules): Assert\Collection
     {
         $constraints = [];
+        $data = array_merge($this->query->all(), $this->request->all());
+
         foreach ($rules as $field => $rule) {
             $rulesArray = explode('|', $rule);
             $fieldConstraints = [];
+
             foreach ($rulesArray as $r) {
                 if ($r === 'required') {
                     $fieldConstraints[] = new Assert\NotBlank();
@@ -80,18 +106,37 @@ class Request extends SymfonyRequest
                     $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($matches) {
                         $table = $matches[1];
                         $column = $matches[2];
+
                         if (Models::exists($table, $column, $value)) {
                             $context->buildViolation("The $column has already been taken.")
                                 ->addViolation();
                         }
                     });
+                } elseif ($r === 'confirmed') {
+                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($field, $data) {
+                        $confirmField = 'confirm_' . $field;
+
+                        // Only compare if the confirm field actually exists in the input data
+                        if (isset($data[$confirmField])) {
+                            if ($value !== $data[$confirmField]) {
+                                $context->buildViolation('Password and confirm password do not match.')
+                                    ->addViolation();
+                            }
+                        }
+                    });
                 }
             }
+
             $constraints[$field] = $fieldConstraints;
         }
 
-        return new Assert\Collection($constraints);
+        // Use Assert\Collection with the allowExtraFields option to ignore unexpected fields
+        return new Assert\Collection([
+            'fields' => $constraints,
+            'allowExtraFields' => true,
+        ]);
     }
+
 
     protected function formatValidationErrors(ConstraintViolationList $violations): array
     {

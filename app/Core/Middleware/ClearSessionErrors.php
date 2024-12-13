@@ -9,13 +9,13 @@ class ClearSessionErrors
         $response = $next($request);
 
         if (isset($_SESSION['errors_displayed']) && $_SESSION['errors_displayed']) {
-            unset($_SESSION['errors']);
-            unset($_SESSION['errors_displayed']);
+            session_forget('errors');
+            session_forget('errors_displayed');
         }
 
         if (isset($_SESSION['old_input_retained']) && $_SESSION['old_input_retained']) {
-            unset($_SESSION['old_input']);
-            unset($_SESSION['old_input_retained']);
+            session_forget('old_input');
+            session_forget('old_input_retained');
         }
 
         if (isset($_SESSION['errors'])) {
