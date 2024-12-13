@@ -29,6 +29,9 @@ class HomeController extends Controller
         return view('auth.login');
     }
 
+
+    public function authenticate(Request $request) {}
+
     public function register()
     {
         return view('auth.signup');

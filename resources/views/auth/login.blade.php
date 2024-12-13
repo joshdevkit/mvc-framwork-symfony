@@ -12,24 +12,31 @@
                     </div>
 
                     <div class="card-body">
+                        @if (session('errors'))
+                            <div class="alert alert-danger" role="alert">
+                                <ul class="mb-0">
+                                    @foreach (session('errors') as $messages)
+                                        @foreach ($messages as $message)
+                                            <li>{{ $message }}</li>
+                                        @endforeach
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <form method="POST" action="{{ url('signin') }}">
                             @csrf
-
-                            <!-- Email -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" id="email" name="email" class="form-control"
-                                    placeholder="Enter your email" required>
+                                <input type="email" id="email" name="email" value="{{ old('email') }}"
+                                    class="form-control" placeholder="Enter your email">
                             </div>
 
-                            <!-- Password -->
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" id="password" name="password" class="form-control"
-                                    placeholder="Enter your password" required>
+                                    placeholder="Enter your password">
                             </div>
 
-                            <!-- Submit Button -->
                             <button type="submit" class="btn btn-primary w-100 mt-3">Sign In</button>
                         </form>
 

@@ -21,18 +21,35 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="/">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ url('/signin') }}" class="nav-link">Signin</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url('/signup') }}" class="nav-link">Signup</a>
-                    </li>
+                    @auth
+                        <li class="nav-item">
+                            <span class="nav-link">Welcome, {{ \App\Core\Auth::user()->name }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/logout') }}"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                class="nav-link">Logout</a>
+
+                            <form id="logout-form" action="{{ url('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a href="{{ url('/signin') }}" class="nav-link">Signin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('/signup') }}" class="nav-link">Signup</a>
+                        </li>
+                    @endauth
                 </ul>
             </div>
         </div>
     </nav>
+
+
     <div class="container mt-5 py-5">
         @yield('content')
     </div>

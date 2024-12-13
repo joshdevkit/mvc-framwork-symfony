@@ -58,7 +58,16 @@ class Application
             $csrfToken = csrf_token();
             return "<?php echo '<input type=\"hidden\" name=\"_token\" value=\"' . htmlspecialchars('$csrfToken') . '\">'; ?>";
         });
+
+        self::$blade->directive('auth', function () {
+            return "<?php if (isset(\$_SESSION['user_id'])): ?>";
+        });
+
+        self::$blade->directive('endauth', function () {
+            return "<?php endif; ?>";
+        });
     }
+
 
 
 
@@ -76,6 +85,7 @@ class Application
     public function boot()
     {
         if (session_status() == PHP_SESSION_NONE) {
+            session_save_path(config('session.path'));
             session_start();
         }
 

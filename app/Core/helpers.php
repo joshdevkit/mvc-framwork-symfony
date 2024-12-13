@@ -111,6 +111,23 @@ function old($key, $default = null)
 
 
 
+if (!function_exists('form_error')) {
+    /**
+     * Display validation errors for form inputs.
+     *
+     * @param string $field
+     * @return string
+     */
+    function form_error($field)
+    {
+        if (session('errors') && session('errors')->has($field)) {
+            return '<span class="text-danger mt-1 d-block">' . session('errors')->first($field) . '</span>';
+        }
+
+        return '';
+    }
+}
+
 /**
  * Generate a URL for an asset in the public/ directory.
  *
@@ -145,11 +162,11 @@ function config(string $key, $default = null)
     if (empty($config)) {
         foreach (glob(__DIR__ . '/../../config/*.php') as $file) {
             $name = basename($file, '.php');
-            $config[$name] = require $file;
+            $config[$name] = require $file; // Load all config files into the array
         }
     }
 
-    $keys = explode('.', $key);
+    $keys = explode('.', $key); // Parse dot notation keys
     $value = $config;
 
     foreach ($keys as $segment) {
@@ -162,6 +179,7 @@ function config(string $key, $default = null)
 
     return $value;
 }
+
 
 
 /**
