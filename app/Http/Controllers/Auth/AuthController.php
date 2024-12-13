@@ -12,6 +12,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
+
+    public function register()
+    {
+        return view('auth.signup');
+    }
+
     public function authenticate(Request $request): Response
     {
         $validated = $request->validate([

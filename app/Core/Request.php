@@ -48,11 +48,12 @@ class Request extends SymfonyRequest
     }
 
 
-    public function validate(array $rules): array
+    public function validate(array $rules, array $customMessages = []): array
     {
         if (!$this->validateCsrfToken()) {
             http_response_code(403);
             $errorViewPath = __DIR__ . '/../../resources/views/errors/500.php';
+
             if (file_exists($errorViewPath)) {
                 include $errorViewPath;
             } else {
@@ -68,7 +69,7 @@ class Request extends SymfonyRequest
         $violations = $validator->validate($data, $constraints);
 
         if (count($violations) > 0) {
-            $errors = $this->formatValidationErrors($violations);
+            $errors = $this->formatValidationErrors($violations, $customMessages);
             session(['errors' => $errors]);
             $_SESSION['old_input'] = array_merge($this->query->all(), $this->request->all());
 
@@ -78,6 +79,7 @@ class Request extends SymfonyRequest
 
         return $data;
     }
+
 
 
     protected function parseRules(array $rules): Assert\Collection
@@ -96,12 +98,9 @@ class Request extends SymfonyRequest
                     $fieldConstraints[] = new Assert\Email();
                 } elseif (preg_match('/min:(\d+)/', $r, $matches)) {
                     $minLength = (int) $matches[1];
-                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($field, $minLength) {
-                        if (is_string($value) && strlen($value) > 0 && strlen($value) < $minLength) {
-                            $context->buildViolation("$field must have at least $minLength characters.")
-                                ->addViolation();
-                        }
-                    });
+                    $fieldConstraints[] = new Assert\Length(['min' => $minLength]);
+                } elseif (preg_match('/integer/', $r)) {
+                    $fieldConstraints[] = new Assert\Type(['type' => 'integer']);
                 } elseif (preg_match('/unique:(\w+),(\w+)/', $r, $matches)) {
                     $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($matches) {
                         $table = $matches[1];
@@ -116,21 +115,23 @@ class Request extends SymfonyRequest
                     $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($field, $data) {
                         $confirmField = 'confirm_' . $field;
 
-                        // Only compare if the confirm field actually exists in the input data
-                        if (isset($data[$confirmField])) {
-                            if ($value !== $data[$confirmField]) {
-                                $context->buildViolation('Password and confirm password do not match.')
-                                    ->addViolation();
-                            }
+                        if (isset($data[$confirmField]) && $value !== $data[$confirmField]) {
+                            $context->buildViolation('Password and confirm password do not match.')
+                                ->addViolation();
                         }
                     });
+                } elseif (preg_match('/files:(.+)/', $r, $matches)) {
+                    $mimeTypes = explode(',', $matches[1]);
+                    $fieldConstraints[] = new Assert\File([
+                        'mimeTypes' => $mimeTypes,
+                        'mimeTypesMessage' => 'Invalid file type provided.',
+                    ]);
                 }
             }
 
             $constraints[$field] = $fieldConstraints;
         }
 
-        // Use Assert\Collection with the allowExtraFields option to ignore unexpected fields
         return new Assert\Collection([
             'fields' => $constraints,
             'allowExtraFields' => true,
@@ -138,23 +139,21 @@ class Request extends SymfonyRequest
     }
 
 
-    protected function formatValidationErrors(ConstraintViolationList $violations): array
+    protected function formatValidationErrors(ConstraintViolationList $violations, array $customMessages): array
     {
         $errors = [];
+
         foreach ($violations as $violation) {
             $field = trim($violation->getPropertyPath(), '[]');
-            $message = $violation->getMessage();
 
-            if ($message === 'This value should not be blank.') {
-                $errors[$field] = ["$field is required."];
-                continue;
+            $fieldWithoutSuffix = preg_replace('/\..+$/', '', $field);
+
+
+            if (isset($customMessages[$fieldWithoutSuffix])) {
+                $errors[$fieldWithoutSuffix][] = $customMessages[$fieldWithoutSuffix];
+            } else {
+                $errors[$fieldWithoutSuffix][] = "$fieldWithoutSuffix is required.";
             }
-
-            if (!isset($errors[$field])) {
-                $errors[$field] = [];
-            }
-
-            $errors[$field][] = "$field $message";
         }
 
         return $errors;
