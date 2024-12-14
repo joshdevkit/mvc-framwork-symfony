@@ -44,9 +44,11 @@ class Application
 
     public function setupBlade()
     {
-        $viewsPath = __DIR__ . '/../../resources/views';
-        $layoutsPath = __DIR__ . '/../../resources/views/layouts';
-        $cachePath = __DIR__ . '/../../storage/framework/cache';
+        //change it to 3 when publising dependency
+        $basePath = dirname(__DIR__, 2); // Adjusted to point to the root directory of the consuming application
+        $viewsPath = $basePath . '/resources/views';
+        $layoutsPath = $viewsPath . '/layouts';
+        $cachePath = $basePath . '/storage/framework/cache';
 
         if (!is_dir($cachePath)) {
             mkdir($cachePath, 0777, true);
@@ -73,6 +75,7 @@ class Application
 
 
 
+
     public static function renderView(string $view, array $data = [])
     {
         try {
@@ -84,13 +87,15 @@ class Application
 
     public function boot()
     {
+
+
+        $this->loadRoutes();
+        $this->setupBlade();
+
         if (session_status() == PHP_SESSION_NONE) {
             session_save_path(config('session.path'));
             session_start();
         }
-
-        $this->loadRoutes();
-        $this->setupBlade();
 
         $middlewareStack = new MiddlewareStack();
         $middlewareStack->handle(Request::createFromGlobals());
@@ -101,6 +106,13 @@ class Application
 
     private function loadRoutes()
     {
-        require_once __DIR__ . '/../../routes/web.php';
+        //in publications of dependency change the value to 3
+        $routesPath = dirname(__DIR__, 2) . '/routes/web.php';
+
+        if (file_exists($routesPath)) {
+            require_once $routesPath;
+        } else {
+            throw new \Exception("Routes file not found at: {$routesPath}");
+        }
     }
 }

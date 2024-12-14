@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Core\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 abstract class Controller
 {

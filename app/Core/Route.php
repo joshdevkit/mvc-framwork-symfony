@@ -68,10 +68,14 @@ class Route
                 $vars[] = $customRequest;
 
                 if (is_callable($handler)) {
-                    call_user_func_array($handler, $vars);
+                    // Merge route variables and append the custom request
+                    call_user_func_array($handler, [...array_values($vars), $customRequest]);
                 } else {
-                    self::invokeController($handler, $vars);
+                    // Pass the custom request explicitly to invokeController
+                    self::invokeController($handler, $vars, $customRequest);
                 }
+
+
                 break;
         }
     }
@@ -79,7 +83,7 @@ class Route
 
 
 
-    private static function invokeController($action, $vars)
+    private static function invokeController($action, $vars, $customRequest = null)
     {
         list($controller, $method) = $action;
         $controller = new $controller;
@@ -88,8 +92,14 @@ class Route
             throw new \Exception("Method {$method} not found in controller " . get_class($controller));
         }
 
-        call_user_func_array([$controller, $method], $vars);
+        // Combine route variables and the custom request into the arguments
+        $arguments = [...array_values($vars), $customRequest];
+
+        // Call the controller method with the arguments
+        call_user_func_array([$controller, $method], $arguments);
     }
+
+
 
 
     private static function send404()

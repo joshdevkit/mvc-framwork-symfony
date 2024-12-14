@@ -1,17 +1,17 @@
 <?php
 
 
-namespace App\Core\Validations;
+namespace joshdevjp\mvccore\Validations;
 
-use App\Core\Request;
+use joshdevjp\mvccore\Request;
 
 trait ValidateRequests
 {
     /**
      * Run the validation routine against the given validator.
      *
-     * @param  \Illuminate\Contracts\Validation\Validator|array  $validator
-     * @param  \Illuminate\Http\Request|null  $request
+     * @param  \Validation\Validator|array  $validator
+     * @param  \SymfonyRequest\Http\Request|null  $request
      * @return array
      *
      * @throws \Illuminate\Validation\ValidationException

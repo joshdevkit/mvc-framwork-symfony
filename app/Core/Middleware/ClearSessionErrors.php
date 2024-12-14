@@ -13,6 +13,11 @@ class ClearSessionErrors
             session_forget('errors_displayed');
         }
 
+        if (isset($_SESSION['message_set'])  && $_SESSION['message_set']) {
+            session_forget('message');
+            session_forget('message_set');
+        }
+
         if (isset($_SESSION['old_input_retained']) && $_SESSION['old_input_retained']) {
             session_forget('old_input');
             session_forget('old_input_retained');
@@ -25,6 +30,12 @@ class ClearSessionErrors
         if (isset($_SESSION['old_input'])) {
             $_SESSION['old_input_retained'] = true;
         }
+
+        if (isset($_SESSION['message'])) {
+            $_SESSION['message_set'] = true;
+        }
+
+
 
         return $response;
     }

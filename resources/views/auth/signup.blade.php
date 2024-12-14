@@ -12,6 +12,7 @@
                     </div>
 
                     <div class="card-body">
+
                         @if (session('errors'))
                             <div class="alert alert-danger" role="alert">
                                 <ul class="mb-0">

@@ -98,7 +98,12 @@ class Request extends SymfonyRequest
                     $fieldConstraints[] = new Assert\Email();
                 } elseif (preg_match('/min:(\d+)/', $r, $matches)) {
                     $minLength = (int) $matches[1];
-                    $fieldConstraints[] = new Assert\Length(['min' => $minLength]);
+                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($minLength) {
+                        if (!empty($value) && strlen($value) < $minLength) {
+                            $context->buildViolation("This value is too short. It should have $minLength characters or more.")
+                                ->addViolation();
+                        }
+                    });
                 } elseif (preg_match('/integer/', $r)) {
                     $fieldConstraints[] = new Assert\Type(['type' => 'integer']);
                 } elseif (preg_match('/unique:(\w+),(\w+)/', $r, $matches)) {
@@ -115,7 +120,7 @@ class Request extends SymfonyRequest
                     $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($field, $data) {
                         $confirmField = 'confirm_' . $field;
 
-                        if (isset($data[$confirmField]) && $value !== $data[$confirmField]) {
+                        if (!empty($data[$field]) && isset($data[$confirmField]) && $value !== $data[$confirmField]) {
                             $context->buildViolation('Password and confirm password do not match.')
                                 ->addViolation();
                         }
@@ -139,21 +144,23 @@ class Request extends SymfonyRequest
     }
 
 
-    protected function formatValidationErrors(ConstraintViolationList $violations, array $customMessages): array
+    protected function formatValidationErrors(ConstraintViolationList $violations): array
     {
         $errors = [];
-
         foreach ($violations as $violation) {
             $field = trim($violation->getPropertyPath(), '[]');
+            $message = $violation->getMessage();
 
-            $fieldWithoutSuffix = preg_replace('/\..+$/', '', $field);
-
-
-            if (isset($customMessages[$fieldWithoutSuffix])) {
-                $errors[$fieldWithoutSuffix][] = $customMessages[$fieldWithoutSuffix];
-            } else {
-                $errors[$fieldWithoutSuffix][] = "$fieldWithoutSuffix is required.";
+            if ($message === 'This value should not be blank.') {
+                $errors[$field] = ["$field is required."];
+                continue;
             }
+
+            if (!isset($errors[$field])) {
+                $errors[$field] = [];
+            }
+
+            $errors[$field][] = "$field $message";
         }
 
         return $errors;

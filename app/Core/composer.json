@@ -1,0 +1,16 @@
+{
+    "name": "joshdev-jp/mvccore",
+    "autoload": {
+        "psr-4": {
+            "joshdevjp\\mvccore\\": "."
+        }
+    },
+    "authors": [
+        {
+            "name": "Joshua Pacho",
+            "email": "102531192+joshdevkit@users.noreply.github.com"
+        }
+    ],
+    "require": {},
+    "license": "MIT"
+}

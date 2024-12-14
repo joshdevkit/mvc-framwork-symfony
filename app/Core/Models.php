@@ -30,8 +30,17 @@ abstract class Models implements BaseModel
      */
     protected static function getTableName(): string
     {
-        $className = strtolower((new \ReflectionClass(static::class))->getShortName());
-        return static::pluralize($className);
+        $className = (new \ReflectionClass(static::class))->getShortName();
+        $snakeCaseName = static::toSnakeCase($className);
+        return static::pluralize($snakeCaseName);
+    }
+
+    /**
+     * Convert a PascalCase string to snake_case.
+     */
+    protected static function toSnakeCase(string $input): string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $input));
     }
 
     /**
@@ -129,8 +138,9 @@ abstract class Models implements BaseModel
         return $instance;
     }
 
-
-    /** * Find a record by email. */
+    /**
+     * Find a record by email.
+     */
     public static function findByEmail(string $email): ?self
     {
         $table = static::getTableName();
@@ -147,8 +157,9 @@ abstract class Models implements BaseModel
         }
         return $instance;
     }
+
     /**
-     * Check existense of certain record from database
+     * Check existence of certain record from database.
      *
      * @param string $table
      * @param string $column

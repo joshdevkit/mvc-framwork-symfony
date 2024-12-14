@@ -4,7 +4,6 @@ use App\Core\Application;
 use App\Core\Redirector;
 use App\Core\Response;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use Symfony\Component\Security\Csrf\CsrfToken;
 
 /**
  * Render a view with BladeOne.
@@ -36,6 +35,8 @@ function response()
         }
     };
 }
+
+
 function redirect()
 {
     return new class {
@@ -63,6 +64,8 @@ function redirect()
     };
 }
 
+
+
 /**
  * Handle session data.
  *
@@ -72,6 +75,9 @@ function redirect()
  */
 function session($key = null, $default = null)
 {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
     if (is_array($key)) {
         foreach ($key as $k => $value) {
             $_SESSION[$k] = $value;
@@ -96,6 +102,11 @@ function session_forget(string $key)
     }
 }
 
+function flash($key, $value)
+{
+    $_SESSION[$key] = $value;
+}
+
 
 /**
  * Retrieve old input values from the session.
@@ -110,23 +121,6 @@ function old($key, $default = null)
 }
 
 
-
-if (!function_exists('form_error')) {
-    /**
-     * Display validation errors for form inputs.
-     *
-     * @param string $field
-     * @return string
-     */
-    function form_error($field)
-    {
-        if (session('errors') && session('errors')->has($field)) {
-            return '<span class="text-danger mt-1 d-block">' . session('errors')->first($field) . '</span>';
-        }
-
-        return '';
-    }
-}
 
 /**
  * Generate a URL for an asset in the public/ directory.
@@ -160,7 +154,7 @@ function config(string $key, $default = null)
     static $config = [];
 
     if (empty($config)) {
-        foreach (glob(__DIR__ . '/../../config/*.php') as $file) {
+        foreach (glob(__DIR__ . '/../../../config/*.php') as $file) {
             $name = basename($file, '.php');
             $config[$name] = require $file; // Load all config files into the array
         }
@@ -194,7 +188,7 @@ function env(string $key, $default = null)
     static $env = [];
 
     if (empty($env)) {
-        $lines = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $lines = file(__DIR__ . '/../../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             if (strpos(trim($line), '#') === 0) {
                 continue;

@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Core\Redirector;
 use App\Models\User;
 use Exception;
 
@@ -23,7 +24,8 @@ class Auth
          */
         $user = User::findByEmail($email);
         if (!$user) {
-            throw new Exception("User not found.");
+            session(['errors' => ['email' => ['No matching record found with the credentials provided']]]);
+            Redirector::back()->send();
         }
         // Verify the password (Use the password_verify as we use the hash class on create)
         if (!password_verify($password, $user->password)) {
