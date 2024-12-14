@@ -5,14 +5,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <title>@yield('title', config('app.name', 'Laravel'))</title>
+    <title>@yield('title', config('app.name'))</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="#">{{ config('app.name', 'Laravel') }}</a>
+            <a class="navbar-brand" href="#">{{ config('app.name') }}</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -25,7 +25,8 @@
                     </li>
                     @auth
                         <li class="nav-item">
-                            <span class="nav-link">Welcome, {{ \App\Core\Auth::user()->name }}</span>
+                            <a href="{{ url('profile') }}" class="nav-link">Welcome,
+                                {{ auth()->user()->name }}</a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ url('/logout') }}"

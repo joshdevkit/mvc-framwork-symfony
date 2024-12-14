@@ -5,19 +5,23 @@ namespace App\Core;
 interface BaseModel
 {
     /**
-     * Create a new record in the database and return an instance of the model.
+     * @method static create
+     * @param array $attributes
+     * @return self
      */
     public static function create(array $attributes): self;
 
     /**
-     * Find a record by its ID or throw an exception if not found.
-     * Returns an instance of the model.
+     * @method static findOrFail
+     * @param integer $id
+     * @return self
      */
     public static function findOrFail(int $id): self;
 
     /**
-     * Find a record by its ID or return null if not found.
-     * Returns an instance of the model or null.
+     * @method static find
+     * @param integer $id
+     * @return self|null
      */
     public static function find(int $id): ?self;
 }

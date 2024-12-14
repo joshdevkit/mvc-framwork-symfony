@@ -9,3 +9,8 @@ Route::get('/signup', [AuthController::class, 'register']);
 Route::get('/signin', [AuthController::class, 'login']);
 Route::post('/signin', [AuthController::class, 'authenticate']);
 Route::post('/signup', [AuthController::class, 'storeUser']);
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [AuthController::class, 'profile']);
+});

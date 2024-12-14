@@ -113,7 +113,9 @@ abstract class Models implements BaseModel
     }
 
     /**
-     * Find a record by ID or return null.
+     * @method static find
+     * @param integer $id
+     * @return self|null
      */
     public static function find(int $id): ?self
     {

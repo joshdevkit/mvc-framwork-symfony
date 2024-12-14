@@ -12,8 +12,9 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $message = "Welcome to my custom php mvc framework";
-        return view('home', compact('message'));
+        $message = "Welcome to Symfony Mvc Framework";
+        $dev = "JoshDev - JP";
+        return view('home', compact('message', 'dev'));
     }
 
 

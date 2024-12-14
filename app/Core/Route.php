@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Http\Kernel;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
@@ -10,6 +11,7 @@ class Route
 {
     private static $dispatcher;
     public static $routes = [];
+    protected static $middleware = [];
 
     public static function get($uri, $action)
     {
@@ -26,12 +28,34 @@ class Route
         self::addRoute('DELETE', $uri, $action);
     }
 
+    /**
+     * Assign middlewares
+     */
+    public static function middleware(array $middleware)
+    {
+        self::$middleware = $middleware;
+        return new static();  // Enable chaining
+    }
+
+    /**
+     * Group middlewares and register routes
+     */
+    public static function group(\Closure $callback)
+    {
+        $callback();
+        self::$middleware = [];  // Clear middlewares after grouping
+    }
+
+    /**
+     * Register the routes with their methods and middlewares
+     */
     private static function addRoute($method, $uri, $action)
     {
         self::$routes[] = [
-            'method' => $method,
-            'uri' => $uri,
-            'action' => $action
+            'method'     => $method,
+            'uri'        => $uri,
+            'action'     => $action,
+            'middleware' => self::$middleware,
         ];
     }
 
@@ -44,6 +68,9 @@ class Route
         });
     }
 
+    /**
+     * Dispatch requests and handle middleware
+     */
     public static function dispatch()
     {
         $request = SymfonyRequest::createFromGlobals();
@@ -58,30 +85,38 @@ class Route
             case \FastRoute\Dispatcher::NOT_FOUND:
                 self::send404();
                 break;
+
             case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
                 self::send405();
                 break;
+
             case \FastRoute\Dispatcher::FOUND:
-                $handler = $routeInfo[1];
-                $vars = $routeInfo[2];
+                $handler   = $routeInfo[1];
+                $vars      = $routeInfo[2];
 
-                $vars[] = $customRequest;
+                $route = array_filter(self::$routes, fn($r) => $r['action'] === $handler);
+                $route = array_shift($route);
 
-                if (is_callable($handler)) {
-                    // Merge route variables and append the custom request
-                    call_user_func_array($handler, [...array_values($vars), $customRequest]);
-                } else {
-                    // Pass the custom request explicitly to invokeController
+                $middlewares = $route['middleware'] ?? [];
+                $kernel = new Kernel;
+
+                $next = function ($request) use ($handler, $vars, $customRequest) {
                     self::invokeController($handler, $vars, $customRequest);
+                };
+
+                // Apply middlewares
+                foreach ($middlewares as $middleware) {
+                    error_log("Executing middleware: $middleware");
+                    $next = function ($request) use ($middleware, $next) {
+                        return self::invokeMiddleware($middleware, $request, $next);
+                    };
                 }
 
 
+                $kernel->handle($customRequest, $next);
                 break;
         }
     }
-
-
-
 
     private static function invokeController($action, $vars, $customRequest = null)
     {
@@ -92,14 +127,26 @@ class Route
             throw new \Exception("Method {$method} not found in controller " . get_class($controller));
         }
 
-        // Combine route variables and the custom request into the arguments
         $arguments = [...array_values($vars), $customRequest];
 
-        // Call the controller method with the arguments
         call_user_func_array([$controller, $method], $arguments);
     }
 
+    private static function invokeMiddleware($middleware, $request, $next)
+    {
+        $kernel = new Kernel();
+        $routeMiddleware = $kernel->getRouteMiddleware();
 
+        if (isset($routeMiddleware[$middleware])) {
+            $middlewareClass = $routeMiddleware[$middleware];
+
+            if (class_exists($middlewareClass)) {
+                return (new $middlewareClass)->handle($request, $next);
+            }
+        }
+
+        throw new \Exception("Middleware `$middleware` not found.");
+    }
 
 
     private static function send404()

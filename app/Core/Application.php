@@ -70,12 +70,6 @@ class Application
         });
     }
 
-
-
-
-
-
-
     public static function renderView(string $view, array $data = [])
     {
         try {
@@ -87,11 +81,13 @@ class Application
 
     public function boot()
     {
-
-
         $this->loadRoutes();
         $this->setupBlade();
 
+        $sessionPath = __DIR__ . '/../../storage/framework/sessions';
+        if (!file_exists($sessionPath)) {
+            mkdir($sessionPath, 0777, true);
+        }
         if (session_status() == PHP_SESSION_NONE) {
             session_save_path(config('session.path'));
             session_start();

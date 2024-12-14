@@ -30,7 +30,6 @@
                                 <input type="email" id="email" name="email" value="{{ old('email') }}"
                                     class="form-control" placeholder="Enter your email">
                             </div>
-
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
                                 <input type="password" id="password" name="password" class="form-control"

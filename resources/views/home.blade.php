@@ -11,6 +11,7 @@
         <p class="lead">Welcome to the PHP MVC Framework - SYMFONY! Build scalable and efficient apps effortlessly.</p>
         <hr class="my-4">
         <p>Explore the features, create models, and manage your application seamlessly.</p>
+        <p>Developed By: {{ $dev }}</p>
         <a class="btn btn-primary  mt-3" href="{{ url('/') }}" role="button">Learn More</a>
     </div>
 @endsection

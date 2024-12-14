@@ -19,14 +19,6 @@ $config = [
 
 $db = new Database($config);
 
-
-
-$sessionPath = __DIR__ . '/../storage/framework/sessions';
-if (!file_exists($sessionPath)) {
-    mkdir($sessionPath, 0777, true);
-}
-
-
 $app = new Application();
 
 $app->boot();

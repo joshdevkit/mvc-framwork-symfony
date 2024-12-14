@@ -38,11 +38,21 @@ class Auth
     }
 
     /**
-     * Get the currently authenticated user.
+     * Return an instance of Auth (singleton-like).
+     *
+     * @return self
+     */
+    public static function instance(): self
+    {
+        return new self();
+    }
+
+    /**
+     * Get the authenticated user.
      *
      * @return User|null
      */
-    public static function user(): ?User
+    public function user(): ?User
     {
         if (!isset($_SESSION['user_id'])) {
             return null;
@@ -66,8 +76,8 @@ class Auth
      *
      * @return void
      */
-    public static function logout(): void
+    public static function destroy(): void
     {
-        unset($_SESSION['user_id']);
+        session_forget('user_id');
     }
 }
