@@ -25,6 +25,7 @@
                         @endif
                         <form method="POST" action="{{ url('signin') }}">
                             @csrf
+
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
                                 <input type="email" id="email" name="email" value="{{ old('email') }}"

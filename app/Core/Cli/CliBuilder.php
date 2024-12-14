@@ -77,9 +77,10 @@ class {$modelName} extends Models
         $basePath = dirname(__DIR__, 3); // Root directory of the consuming application
         $cachePath = "{$basePath}/storage/framework/cache/";
         $viewsPath = "{$basePath}/storage/framework/views/";
-
+        $sessionCachePath = "{$basePath}/storage/framework/sessions/";
         array_map('unlink', glob("$cachePath/*"));
         array_map('unlink', glob("$viewsPath/*"));
+        array_map('unlink', glob("$sessionCachePath/*"));
 
         echo "Cache and compiled views have been cleared!\n";
     }

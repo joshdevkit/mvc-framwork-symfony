@@ -8,9 +8,9 @@ class Kernel
 {
     protected $routeMiddleware = [
         'auth' => 'App\Http\Middleware\AuthMiddleware',
+        'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
     ];
 
-    // Handle incoming request
     public function handle(Request $request, \Closure $next)
     {
         return $next($request);

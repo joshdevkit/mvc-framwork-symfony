@@ -44,8 +44,7 @@ class Application
 
     public function setupBlade()
     {
-        //change it to 3 when publising dependency
-        $basePath = dirname(__DIR__, 2); // Adjusted to point to the root directory of the consuming application
+        $basePath = dirname(__DIR__, 2);
         $viewsPath = $basePath . '/resources/views';
         $layoutsPath = $viewsPath . '/layouts';
         $cachePath = $basePath . '/storage/framework/cache';
@@ -54,7 +53,11 @@ class Application
             mkdir($cachePath, 0777, true);
         }
 
-        self::$blade = new BladeOne([$viewsPath, $layoutsPath], $cachePath, BladeOne::MODE_AUTO);
+        self::$blade = new BladeOne([$viewsPath, $layoutsPath], $cachePath, BladeOne::MODE_DEBUG);
+
+        if (file_exists($cachePath)) {
+            array_map('unlink', glob("$cachePath/*"));
+        }
 
         self::$blade->directive('csrf', function () {
             $csrfToken = csrf_token();
@@ -68,7 +71,22 @@ class Application
         self::$blade->directive('endauth', function () {
             return "<?php endif; ?>";
         });
+
+        self::$blade->directive('error', function ($field) {
+            return "<?php if (isset(\$_SESSION['errors']) && isset(\$_SESSION['errors'][$field])): ?>
+                    <?php foreach (\$_SESSION['errors'][$field] as \$message): ?>
+                        <div class='invalid-feedback mt-1'><?= \$message ?></div>
+                    <?php endforeach; ?>
+                <?php endif; ?>";
+        });
+
+        self::$blade->directive('enderror', function () {
+            return "";
+        });
     }
+
+
+
 
     public static function renderView(string $view, array $data = [])
     {
@@ -82,16 +100,15 @@ class Application
     public function boot()
     {
         $this->loadRoutes();
-        $this->setupBlade();
 
-        $sessionPath = __DIR__ . '/../../storage/framework/sessions';
-        if (!file_exists($sessionPath)) {
-            mkdir($sessionPath, 0777, true);
-        }
         if (session_status() == PHP_SESSION_NONE) {
+
             session_save_path(config('session.path'));
             session_start();
         }
+
+        $this->setupBlade();
+
 
         $middlewareStack = new MiddlewareStack();
         $middlewareStack->handle(Request::createFromGlobals());

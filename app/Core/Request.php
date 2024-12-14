@@ -40,11 +40,11 @@ class Request extends SymfonyRequest
     public function validateCsrfToken(): bool
     {
         $token = $this->request->get('_token');
-        $sessionToken = $_SESSION['csrf_tokens']['default'] ?? null;
+        $sessionToken = $_SESSION['csrf_tokens']['_token'] ?? null;
         if (!$token) {
             return false;
         }
-        return trim($sessionToken) === trim($token);
+        return $sessionToken === $token;
     }
 
 

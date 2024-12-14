@@ -31,12 +31,6 @@ class ClearSessionErrors
             $_SESSION['old_input_retained'] = true;
         }
 
-        if (isset($_SESSION['message'])) {
-            $_SESSION['message_set'] = true;
-        }
-
-
-
         return $response;
     }
 }

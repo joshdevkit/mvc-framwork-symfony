@@ -122,6 +122,20 @@ function old($key, $default = null)
 }
 
 
+// /**
+//  * Display validation errors for a given field.
+//  *
+//  * @param string $field
+//  */
+// function errors($field)
+// {
+//     if (session('errors') && isset(session('errors')[$field])) {
+//         foreach (session('errors')[$field] as $error) {
+//             echo "<div class='invalid-feedback mt-1'>{$error}</div>";
+//         }
+//     }
+// }
+
 
 /**
  * Generate a URL for an asset in the public/ directory.
@@ -211,7 +225,7 @@ function env(string $key, $default = null)
  * @param string $tokenId 
  * @return string
  */
-function csrf_token($tokenId = 'default'): string
+function csrf_token($tokenId = '_token'): string
 {
     if (isset($_SESSION['csrf_tokens'][$tokenId])) {
         return $_SESSION['csrf_tokens'][$tokenId];
