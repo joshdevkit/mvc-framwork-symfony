@@ -52,7 +52,7 @@ class Auth
      *
      * @return User|null
      */
-    public function user(): ?User
+    public  function user(): ?User
     {
         if (!isset($_SESSION['user_id'])) {
             return null;

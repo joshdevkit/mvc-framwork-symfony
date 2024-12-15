@@ -10,6 +10,7 @@ abstract class Models implements BaseModel
     protected static ?PDO $dbConnection = null;
 
     protected $fillable = [];
+    public $id;
 
     /**
      * Get the database connection (initialize once).
@@ -109,7 +110,7 @@ abstract class Models implements BaseModel
             $instance->{$key} = $value;
         }
 
-        return $instance;
+        return $record;
     }
 
     /**
@@ -161,19 +162,65 @@ abstract class Models implements BaseModel
     }
 
     /**
-     * Check existence of certain record from database.
+     * Check existence of a certain record in the database, excluding a specific ID.
      *
      * @param string $table
      * @param string $column
-     * @param [type] $value
-     * @return boolean
+     * @param mixed $value
+     * @param int|null $excludeId
+     * @return bool
      */
-    public static function exists(string $table, string $column, $value): bool
+    public static function exists(string $table, string $column, $value, ?int $excludeId = null): bool
     {
         $pdo = self::conn();
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM {$table} WHERE {$column} = ?");
-        $stmt->execute([$value]);
+        $sql = "SELECT COUNT(*) FROM {$table} WHERE {$column} = ?";
+        $params = [$value];
+
+        // Exclude a specific ID if provided
+        if ($excludeId !== null) {
+            $sql .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Update a record in the database. 
+     *
+     * @param array $attributes 
+     * @return bool 
+     */
+    public function update(array $attributes = []): bool
+    {
+        $table = static::getTableName();
+        $fillable = $this->getFillable();
+
+        // Filter attributes based on fillable properties
+        if (!empty($attributes)) {
+            $attributes = array_intersect_key($attributes, array_flip($fillable));
+        } else {
+            // If no attributes are provided, use the current object properties
+            $attributes = array_intersect_key(get_object_vars($this), array_flip($fillable));
+            unset($attributes['id']); // Ensure we do not update the ID
+        }
+
+        // Build the SET clause
+        $columns = array_keys($attributes);
+        $placeholders = implode(' = ?, ', $columns) . ' = ?';
+
+        // Construct the SQL query
+        $sql = "UPDATE {$table} SET {$placeholders} WHERE id = ?";
+
+        // Prepare the values for the query
+        $values = array_values($attributes);
+        $values[] = $this->id;
+
+        // Execute the query
+        $stmt = self::conn()->prepare($sql);
+        return $stmt->execute($values);
     }
 
     /**

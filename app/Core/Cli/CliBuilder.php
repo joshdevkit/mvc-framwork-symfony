@@ -30,15 +30,41 @@ class CliBuilder
                 self::runMigrations();
                 break;
 
+            case 'start':
+                $host = $args[1] ?? 'localhost';
+                $port = $args[2] ?? 8000;
+                self::serve($host, $port);
+                break;
+
             default:
                 self::help();
                 break;
         }
     }
 
+    private static function serve($host, $port)
+    {
+        // Ensure the public directory exists
+        $basePath = dirname(__DIR__, 3); // Root directory of the application
+        $publicPath = "{$basePath}/public";
+
+        if (!file_exists($publicPath)) {
+            echo "The 'public' directory does not exist. Please create it.\n";
+            return;
+        }
+
+        $command = sprintf('php -S %s:%s -t %s', $host, $port, $publicPath);
+
+        echo "Starting development server at http://{$host}:{$port}\n";
+        echo "Press Ctrl+C to stop the server.\n";
+
+        // Execute the server command
+        passthru($command);
+    }
+
     private static function createModel($modelName)
     {
-        //change it to 4 when dependency is applied
+        // Change it to 4 when dependency is applied
         $basePath = dirname(__DIR__, 3); // Root directory of the consuming application
         $modelPath = "{$basePath}/app/Models/{$modelName}.php";
 
@@ -63,7 +89,7 @@ class {$modelName} extends Models
 
             global $argv;
             if (in_array('-m', $argv)) {
-                //change it into  \joshdevjp\mvccore\Cli\Blueprint::createMigration($modelName); when applying dependency
+                // Change it to  \joshdevjp\mvccore\Cli\Blueprint::createMigration($modelName); when applying dependency
                 \App\Core\Cli\Blueprint::createMigration($modelName);
             }
         } else {
@@ -73,7 +99,7 @@ class {$modelName} extends Models
 
     private static function clearCache()
     {
-        //change it to 4
+        // Change it to 4
         $basePath = dirname(__DIR__, 3); // Root directory of the consuming application
         $cachePath = "{$basePath}/storage/framework/cache/";
         $viewsPath = "{$basePath}/storage/framework/views/";
@@ -88,15 +114,16 @@ class {$modelName} extends Models
     private static function help()
     {
         echo "CLI Usage:\n";
-        echo "php create:model ModelName    - Generates a new Model\n";
-        echo "php create:model ModelName -m - Generates a new Model with migration file \n";
-        echo "php cache:clear             - Clears cache and compiled views\n";
-        echo "php migrate                 - Runs database migrations\n";
+        echo "php command create:model ModelName    - Generates a new Model\n";
+        echo "php command create:model ModelName -m - Generates a new Model with migration file \n";
+        echo "php command cache:clear             - Clears cache and compiled views\n";
+        echo "php command migrate                 - Runs database migrations\n";
+        echo "php command start [host] [port]     - Starts a local development server (default: localhost:8000)\n";
     }
 
     private static function runMigrations()
     {
-        //change it to 4
+        // Change it to 4
         $basePath = dirname(__DIR__, 3); // Root directory of the consuming application
         $dotenv = \Dotenv\Dotenv::createImmutable($basePath);
         $dotenv->load();

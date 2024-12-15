@@ -66,6 +66,79 @@ class AuthController extends Controller
         return view('auth.profile.edit');
     }
 
+
+    public function update(Request $request)
+    {
+        /**
+         * @var App\Models\User;
+         */
+        $user = auth()->user();
+
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            // 'avatar' => 'nullable|image|mimes:jpg,jpeg,jfif,png|max:2048',
+        ]);
+
+        //can support a array attributes
+        /*
+         * array attributes example
+         * $user->update($validatedData);
+         * 
+         */
+
+        $user->name = $validatedData['name'];
+        $user->email = $validatedData['email'];
+
+        if ($user->update()) {
+            session(['message' => 'Profile Updated Successfully']);
+            return redirect()->back();
+        }
+    }
+
+
+    public function update_avatar(Request $request)
+    {
+        // $userId = Auth::user()->id;
+
+        // // Validate the input
+        // $validated = $request->validate([
+        //     'avatar' => 'nullable|image|mime:png,jpg,jfif,webp|max:2048'
+        // ]);
+
+        // if ($request->hasFile('avatar')) {
+        //     $avatarFile = $validated['avatar'];
+        //     $originalFilename = $avatarFile->getClientOriginalName();
+        //     $name = 'profile_' . $userId . '_' . $originalFilename;
+
+        //     // Define the path to store the avatar in the public folder
+        //     $path = public_path('profile/avatars/');
+
+        //     $avatarFile->move($path, $name);
+        //     $avatarPath = 'profile/avatars/' . $name;
+
+        //     // Load user record and update the avatar path
+
+        //     /**
+        //      * @var App\Models\User;
+        //      */
+        //     $user = User::findOrFail($userId);
+        //     dd($user);
+        //     $user->avatar = $avatarPath;
+
+        //     if ($user->save()) {
+        //         return redirect()->back()->with('success', 'Avatar updated successfully.');
+        //     } else {
+        //         return redirect()->back()->with('error', 'Failed to save avatar.');
+        //     }
+        // }
+
+        // return redirect()->back()->with('info', 'No new avatar provided.');
+        dd($request);
+    }
+
+
+
     public function logout(): Response
     {
         Auth::destroy();

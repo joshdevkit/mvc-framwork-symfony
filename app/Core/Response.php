@@ -19,10 +19,4 @@ class Response
     {
         return new JsonResponse($data, $status, $headers, $options);
     }
-
-    public static function redirect($url)
-    {
-        header('Location: ' . $url);
-        exit(); // Ensure the script stops after redirection 
-    }
 }

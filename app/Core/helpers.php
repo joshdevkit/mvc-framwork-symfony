@@ -250,6 +250,41 @@ function csrf_token($tokenId = '_token'): string
 }
 
 
+/**
+ * Store an uploaded file in the specified location.
+ *
+ * @param UploadedFile $file
+ * @param string $path
+ * @param string $name
+ * @return string|null
+ */
+function storeAs($file, string $path, string $name): ?string
+{
+    $directory = public_path($path);
+    if (!is_dir($directory)) {
+        mkdir($directory, 0755, true);
+    }
+
+    $filename = $name . '.' . $file->getClientOriginalExtension();
+    $filePath = $directory . '/' . $filename;
+
+    if ($file->move($directory, $filename)) {
+        return asset("{$path}/{$filename}");
+    }
+
+    return null;
+}
+
+/**
+ * Return the full public path.
+ */
+function public_path(string $path): string
+{
+    return rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . ltrim($path, '/');
+}
+
+
+
 function auth(): Auth
 {
     return Auth::instance();
