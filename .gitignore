@@ -1,7 +1,7 @@
 .env
 /vendor
 
-
+/public/profile
 /storage/*.key 
 /storage/*.backup 
 /storage/app/public 
