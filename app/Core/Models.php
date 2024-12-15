@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use DateTime;
 use PDO;
 use Exception;
 
@@ -10,6 +11,8 @@ abstract class Models implements BaseModel
     protected static ?PDO $dbConnection = null;
 
     protected $fillable = [];
+    protected $hidden = [];
+    protected $casts = [];
     public $id;
 
     /**
@@ -96,6 +99,13 @@ abstract class Models implements BaseModel
 
     /**
      * Find a record by ID or throw an exception if not found.
+     *
+     * This method returns an instance of the class with the attributes populated
+     * from the database record. If the record doesn't exist, an exception is thrown.
+     *
+     * @param int $id The ID of the record to find.
+     * @throws Exception If the record is not found.
+     * @return self
      */
     public static function findOrFail(int $id): self
     {
@@ -105,17 +115,17 @@ abstract class Models implements BaseModel
             throw new Exception("Record not found with ID: {$id}");
         }
 
-        $instance = new static();
-        foreach ($record as $key => $value) {
-            $instance->{$key} = $value;
-        }
-
-        return $record;
+        return $record; // Casting is handled in find().
     }
 
     /**
-     * @method static find
-     * @param integer $id
+     * Find a record by ID.
+     *
+     * This method returns an instance of the class with attributes populated
+     * from the database record, or null if the record doesn't exist. Sensitive
+     * attributes like `password` are excluded from the result.
+     *
+     * @param int $id The ID of the record to find.
      * @return self|null
      */
     public static function find(int $id): ?self
@@ -135,10 +145,46 @@ abstract class Models implements BaseModel
 
         $instance = new static();
         foreach ($result as $key => $value) {
+            $value = $instance->castAttributeOnRetrieve($key, $value);
             $instance->{$key} = $value;
         }
 
+        // Unset the password attribute if it exists
+        if (isset($instance->password)) {
+            unset($instance->password);
+        }
+
         return $instance;
+    }
+
+    /**
+     * Cast an attribute when retrieving from the database.
+     *
+     * @param string $key The attribute key.
+     * @param mixed $value The raw value from the database.
+     * @return mixed The casted value.
+     */
+    protected function castAttributeOnRetrieve(string $key, $value)
+    {
+        if (isset($this->casts[$key])) {
+            $castType = $this->casts[$key];
+            switch ($castType) {
+                case 'boolean':
+                    return (bool) $value;
+                case 'integer':
+                    return (int) $value;
+                case 'float':
+                    return (float) $value;
+                case 'hashed': // For hashed attributes, return as is (e.g., password hashes).
+                    return $value;
+                case 'datetime':
+                    return new DateTime($value);
+                default:
+                    return $value; // Default behavior if no matching cast type is found.
+            }
+        }
+
+        return $value; // Return raw value if no cast is defined.
     }
 
     /**
@@ -222,6 +268,89 @@ abstract class Models implements BaseModel
         $stmt = self::conn()->prepare($sql);
         return $stmt->execute($values);
     }
+
+    /**
+     * Save the current object's data, ensuring casts are applied before updating.
+     */
+    public function save(array $attributes = []): bool
+    {
+        $table = static::getTableName();
+        $fillable = $this->getFillable();
+
+        // Apply casting to attributes before saving
+        foreach ($this->casts as $attribute => $castType) {
+            if (isset($attributes[$attribute])) {
+                $attributes[$attribute] = $this->castAttribute($attributes[$attribute], $castType);
+            }
+        }
+
+        // If specific attributes are provided, only update them
+        if (!empty($attributes)) {
+            $attributes = array_intersect_key($attributes, array_flip($fillable));
+        } else {
+            // Otherwise, update only the attributes that are set in the object
+            $attributes = array_intersect_key(get_object_vars($this), array_flip($fillable));
+        }
+
+        if (empty($attributes)) {
+            return false; // No attributes to update
+        }
+
+        $columns = array_keys($attributes);
+        $placeholders = implode(' = ?, ', $columns) . ' = ?';
+
+        $sql = "UPDATE {$table} SET {$placeholders} WHERE id = ?";
+
+        $stmt = self::conn()->prepare($sql);
+        $values = array_values($attributes);
+        $values[] = $this->id;
+
+        return $stmt->execute($values);
+    }
+
+
+    public function toArray(): array
+    {
+        $attributes = get_object_vars($this);
+
+        foreach ($this->hidden as $hiddenAttribute) {
+            unset($attributes[$hiddenAttribute]);
+        }
+
+        foreach ($this->casts as $attribute => $castType) {
+            if (isset($attributes[$attribute])) {
+                $attributes[$attribute] = $this->castAttribute($attributes[$attribute], $castType);
+            }
+        }
+
+        return $attributes;
+    }
+
+
+
+    /**
+     * Cast an attribute to the specified type.
+     */
+    protected function castAttribute($value, string $type)
+    {
+        switch ($type) {
+            case 'hashed':
+                return password_hash($value, PASSWORD_DEFAULT);
+            case 'int':
+                return (int) $value;
+            case 'float':
+                return (float) $value;
+            case 'bool':
+                return (bool) $value;
+            case 'string':
+                return (string) $value;
+            default:
+                return $value;
+        }
+    }
+
+
+
 
     /**
      * Return the fillable properties.

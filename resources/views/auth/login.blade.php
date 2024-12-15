@@ -5,7 +5,7 @@
 @section('content')
     <div class="container mt-5">
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-6 col-sm-8 col-sm-8">
                 <div class="card shadow rounded p-4">
                     <div class="card-header text-center">
                         <h2><i class="bi bi-box-arrow-in-right"></i> Sign In</h2>

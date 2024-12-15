@@ -9,6 +9,15 @@ class User extends Models
     protected $fillable = [
         'name',
         'email',
-        'password'
+        'password',
+        'avatar'
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    protected $casts = [
+        'password' => 'hashed',
     ];
 }

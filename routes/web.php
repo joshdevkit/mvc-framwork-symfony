@@ -15,4 +15,10 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/signup', [AuthController::class, 'storeUser']);
 });
 
+
+
+Route::get('/users/{id}', [HomeController::class, 'users']);
+
+Route::post('/test-ajax-csrf', [HomeController::class, 'test']);
+
 require __DIR__ . '/auth.php';

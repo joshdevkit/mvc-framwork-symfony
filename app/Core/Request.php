@@ -43,6 +43,17 @@ class Request extends SymfonyRequest
         return $files;
     }
 
+    public function header($key)
+    {
+        return $this->headers->get($key);
+    }
+
+    public function hasHeader(string $key): bool
+    {
+        return $this->headers->has($key);
+    }
+
+
 
     public function getMethod(): string
     {
@@ -86,6 +97,7 @@ class Request extends SymfonyRequest
     {
         return $this->hasFile($key) ? $this->files->get($key) : null;
     }
+
 
 
     public function validate(array $rules): array

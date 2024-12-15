@@ -56,7 +56,8 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password'])
         ]);
-        session(['message' => 'Account Created Successfully']);
+        // session(['message' => 'Account Created Successfully']);
+        Auth::attempt($validated['email'], $validated['password']);
         return redirect()->to('/');
     }
 
@@ -77,7 +78,6 @@ class AuthController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
-            // 'avatar' => 'nullable|image|mimes:jpg,jpeg,jfif,png|max:2048',
         ]);
 
         //can support a array attributes
@@ -99,42 +99,42 @@ class AuthController extends Controller
 
     public function update_avatar(Request $request)
     {
-        // $userId = Auth::user()->id;
+        $userId = auth()->user()->id;
 
-        // // Validate the input
-        // $validated = $request->validate([
-        //     'avatar' => 'nullable|image|mime:png,jpg,jfif,webp|max:2048'
-        // ]);
+        $validated = $request->validate([
+            'avatar' => 'nullable|image|mime:png,jpg,jfif,webp|max:2048'
+        ]);
 
-        // if ($request->hasFile('avatar')) {
-        //     $avatarFile = $validated['avatar'];
-        //     $originalFilename = $avatarFile->getClientOriginalName();
-        //     $name = 'profile_' . $userId . '_' . $originalFilename;
+        if ($request->hasFile('avatar')) {
+            $avatarFile = $validated['avatar'];
+            // $originalFilename = $avatarFile->getClientOriginalName();
+            $extension = $avatarFile->getClientOriginalExtension();
+            $name = 'profile_' . $userId . '_' . time() . '.' . $extension;
 
-        //     // Define the path to store the avatar in the public folder
-        //     $path = public_path('profile/avatars/');
 
-        //     $avatarFile->move($path, $name);
-        //     $avatarPath = 'profile/avatars/' . $name;
+            $path = public_path('profile/avatars/');
 
-        //     // Load user record and update the avatar path
+            $avatarFile->move($path, $name);
+            $avatarPath = 'profile/avatars/' . $name;
+            /**
+             * @var App\Models\User;
+             */
+            $user = User::findOrFail($userId);
 
-        //     /**
-        //      * @var App\Models\User;
-        //      */
-        //     $user = User::findOrFail($userId);
-        //     dd($user);
-        //     $user->avatar = $avatarPath;
+            if ($user->avatar && file_exists(public_path($user->avatar))) {
+                unlink(public_path($user->avatar));
+            }
 
-        //     if ($user->save()) {
-        //         return redirect()->back()->with('success', 'Avatar updated successfully.');
-        //     } else {
-        //         return redirect()->back()->with('error', 'Failed to save avatar.');
-        //     }
-        // }
-
-        // return redirect()->back()->with('info', 'No new avatar provided.');
-        dd($request);
+            if ($user->save(['avatar' => $avatarPath])) {
+                session(['message' => 'Avatar updated successfully.']);
+                return redirect()->back();
+            } else {
+                session(['errors' => ['avatar' => ['Failed to updated']]]);
+                return redirect()->back();
+            }
+        }
+        session(['message' => 'No update was made.']);
+        return redirect()->back();
     }
 
 

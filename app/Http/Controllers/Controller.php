@@ -10,18 +10,12 @@ abstract class Controller
 
     public function __construct()
     {
+        // Perform global request validation
+        $this->validateRequest();
+        //inherit the Request createFromGlobals
         $this->request = Request::createFromGlobals();
     }
 
-    /**
-     * Apply common middleware.
-     *
-     * @return void
-     */
-    protected function middleware()
-    {
-        // Implement common middleware logic here
-    }
 
     /**  Validate the request data against the given rules. 
      *
@@ -31,5 +25,27 @@ abstract class Controller
     protected function validate(array $rules): array
     {
         return $this->request->validate($rules);
+    }
+
+    protected function validateRequest(): void
+    {
+        $request = Request::createFromGlobals();
+        // Check if the request is AJAX
+        if ($request->isXmlHttpRequest()) {
+            // Validate CSRF token
+            if (!$this->isValidCsrfToken($request)) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Invalid CSRF token']);
+                exit;
+            }
+        }
+    }
+
+    protected function isValidCsrfToken(Request $request): bool
+    {
+        $csrfToken = $request->header('X-CSRF-TOKEN');
+        $sessionToken = $_SESSION['csrf_tokens']['_token'] ?? null;
+
+        return $csrfToken && $csrfToken === $sessionToken;
     }
 }

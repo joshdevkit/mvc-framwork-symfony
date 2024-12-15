@@ -14,4 +14,25 @@
         <p>Developed By: {{ $dev }}</p>
         <a class="btn btn-primary  mt-3" href="{{ url('/') }}" role="button">Learn More</a>
     </div>
+
+
+
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                url: '/users/1',
+                type: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // if you remove this, you will no longer proced with ajax request
+                },
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(xhr) {
+                    console.error("Failed to fetch data:", xhr.responseText);
+                }
+            });
+        });
+    </script>
+
 @endsection

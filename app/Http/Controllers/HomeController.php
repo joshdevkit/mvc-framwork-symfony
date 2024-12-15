@@ -20,8 +20,20 @@ class HomeController extends Controller
 
     public function users($id)
     {
-        $user = User::find($id);
+        $user = User::findOrFail($id);
 
-        dd($user);
+        return response()->json(['user' => $user]);
+    }
+
+    public function test(Request $request)
+    {
+        if ($request->hasHeader('X-CSRF-TOKEN')) {
+            return response()->json([
+                'message' => 'CSRF validation passed!',
+                'data' => $request->server->all()
+            ]);
+        }
+
+        return response()->json(['error' => 'CSRF token not provided'], 400);
     }
 }

@@ -7,14 +7,17 @@
                 <!-- Profile Card -->
                 <div class="card shadow-lg">
                     <div class="card-header bg-primary text-white d-flex align-items-center">
-                        <form action="{{ url('profile/update-avatar') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ url('/account/update-avatar') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="avatar">
-                                <img id="avatarPreview" src="https://via.placeholder.com/100" alt="User Avatar"
-                                    class="rounded-circle border border-white avatar-clickable"
+                                <img id="avatarPreview"
+                                    src="{{ auth()->user()->avatar ? asset(auth()->user()->avatar) : 'https://via.placeholder.com/100' }}"
+                                    alt="User Avatar" class="rounded-circle border border-white avatar-clickable"
                                     style="width: 80px; height: 80px; cursor: pointer;">
+
                                 <input type="file" id="avatarInput" name="avatar" accept="image/*"
                                     style="display: none;">
+
                             </div>
                             <div class="ml-3">
                                 <h3 class="mb-0">{{ auth()->user()->name }}</h3>
@@ -95,7 +98,7 @@
     <div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog" aria-labelledby="editProfileModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <form action="{{ url('/profile/update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ url('/account/update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-content">
                     <div class="modal-header">

@@ -4,10 +4,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
-    <title>@yield('title', config('app.name', 'MVC FRAMRWORK'))</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <title>@yield('title', config('app.name', 'MVC FRAMRWORK'))</title>
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
 </head>
 
 <body>
@@ -26,25 +26,22 @@
                     </li>
                     @auth
                         <li class="nav-item">
-                            <a href="{{ url('profile') }}" class="nav-link">Welcome,
+                            <a href="{{ url('/account') }}" class="nav-link">Welcome,
                                 {{ auth()->user()->name }}</a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ url('/logout') }}"
                                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                                 class="nav-link">Logout</a>
-
                             <form id="logout-form" action="{{ url('logout') }}" method="POST" class="d-none">
                                 @csrf
                             </form>
                         </li>
                     @else
                         <li class="nav-item">
-                            <a href="{{ url('/signin') }}" class="nav-link">Signin</a>
+                            <a href="{{ url('/signin') }}" class="btn btn-primary">Explore</a>
                         </li>
-                        <li class="nav-item">
-                            <a href="{{ url('/signup') }}" class="nav-link">Signup</a>
-                        </li>
+
                     @endauth
                 </ul>
             </div>
@@ -55,7 +52,6 @@
     <div class="container mt-5 py-5">
         @yield('content')
     </div>
-    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 </body>
 
