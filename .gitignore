@@ -6,3 +6,4 @@
 /storage/*.backup 
 /storage/app/public 
 /storage/framework
+/.vscode

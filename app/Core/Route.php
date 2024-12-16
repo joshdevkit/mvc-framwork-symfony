@@ -2,6 +2,7 @@
 
 namespace App\Core;
 
+use App\Core\Validations\UseErrors;
 use App\Http\Kernel;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use FastRoute\RouteCollector;
@@ -9,6 +10,7 @@ use function FastRoute\simpleDispatcher;
 
 class Route
 {
+    use UseErrors;
     private static $dispatcher;
     public static $routes = [];
     protected static $middleware = [];
@@ -16,16 +18,19 @@ class Route
     public static function get($uri, $action)
     {
         self::addRoute('GET', $uri, $action);
+        return new static;
     }
 
     public static function post($uri, $action)
     {
         self::addRoute('POST', $uri, $action);
+        return new static;
     }
 
     public static function delete($uri, $action)
     {
         self::addRoute('DELETE', $uri, $action);
+        return new static;
     }
 
     /**
@@ -49,13 +54,14 @@ class Route
     /**
      * Register the routes with their methods and middlewares
      */
-    private static function addRoute($method, $uri, $action)
+    private static function addRoute($method, $uri, $action, $name = null)
     {
         self::$routes[] = [
             'method'     => $method,
             'uri'        => $uri,
             'action'     => $action,
             'middleware' => self::$middleware,
+            'name'       => $name,
         ];
     }
 
@@ -66,6 +72,25 @@ class Route
                 $r->addRoute($route['method'], $route['uri'], $route['action']);
             }
         });
+    }
+
+    public static function name($name)
+    {
+        $lastKey = array_key_last(self::$routes);
+        if ($lastKey !== null) {
+            self::$routes[$lastKey]['name'] = $name;
+        }
+        return new static;
+    }
+
+    public static function getRouteByName($name)
+    {
+        foreach (self::$routes as $route) {
+            if (isset($route['name']) && $route['name'] === $name) {
+                return $route;
+            }
+        }
+        return null; // Return null if not found
     }
 
     /**
@@ -83,14 +108,27 @@ class Route
 
         switch ($routeInfo[0]) {
             case \FastRoute\Dispatcher::NOT_FOUND:
-                self::send404();
+                if (config('app.debug')) {
+                    self::send404();
+                } else {
+                    self::GenericError();
+                }
                 break;
 
             case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                self::send405();
+                $allowedMethods = $routeInfo[1][0];
+                $httpMethod = $_SERVER['REQUEST_METHOD'];
+                $controllName = self::$routes[3]['action'][0];
+                $uRi = self::$routes[3]['uri'];
+                if (config('app.debug')) {
+                    self::GenericError();
+                } else {
+                    self::send405($httpMethod, $allowedMethods, $controllName, $uRi);
+                }
                 break;
 
             case \FastRoute\Dispatcher::FOUND:
+
                 $handler   = $routeInfo[1];
                 $vars      = $routeInfo[2];
 
@@ -104,14 +142,11 @@ class Route
                     self::invokeController($handler, $vars, $customRequest);
                 };
 
-                // Apply middlewares
                 foreach ($middlewares as $middleware) {
-                    error_log("Executing middleware: $middleware");
                     $next = function ($request) use ($middleware, $next) {
                         return self::invokeMiddleware($middleware, $request, $next);
                     };
                 }
-
 
                 $kernel->handle($customRequest, $next);
                 break;
@@ -149,15 +184,26 @@ class Route
     }
 
 
-    private static function send404()
+    public static function send404()
     {
-        http_response_code(404);
-        echo "404 Not Found";
+        $instance = new self();
+        $instance->return404Error();
+        exit();
     }
 
-    private static function send405()
+
+    public static function send405($httpMethod, $allowedMethods, $controllName, $uRi)
     {
-        http_response_code(405);
-        echo "405 Method Not Allowed";
+        $instance = new self();
+        $instance->return405Error($httpMethod, $allowedMethods, $controllName, $uRi); // Pass details to the trait method
+        exit();
+    }
+
+
+    public static function GenericError()
+    {
+        $instance = new self();
+        $instance->returnGenericError();
+        exit();
     }
 }

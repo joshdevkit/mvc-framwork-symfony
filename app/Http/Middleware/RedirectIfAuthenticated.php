@@ -12,14 +12,14 @@ class RedirectIfAuthenticated implements Middleware
          * RedirectIfAuthenticated
          *
          * If the user is authenticated:
-         * - Redirect them to the homepage (`/`).
+         * - Redirect them to the homepage (`/dashboard`).
          *
          * If not authenticated:
          * - Allow access to the next middleware or controller.
          */
         if (auth()->user()) {
             // Redirect authenticated users to the homepage
-            return redirect()->back();
+            return redirect()->route('dashboard');
         }
 
         // Continue for unauthenticated users

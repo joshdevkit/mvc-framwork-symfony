@@ -2,8 +2,10 @@
 
 use App\Core\Application;
 use App\Core\Auth;
+use App\Core\Exceptions\MissingRouteParamsException;
 use App\Core\Redirector;
 use App\Core\Response;
+use App\Core\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 
 /**
@@ -47,23 +49,34 @@ function redirect()
             $response->send();
             exit();
         }
+        //for calling the route name
+        public function route(string $name, array $params = [])
+        {
+            $url = route($name, $params);
+            $this->to($url);
+        }
+        //for simplicity
+        public function to_route(string $name, array $params = [])
+        {
+            $url = route($name, $params);
+            $this->to($url);
+        }
+
         public function back(array $data = [])
         {
             $response = Redirector::back($data);
             $response->send();
             exit();
         }
-        /**
-         * Flash a message to the session.
-         */
+
         public function with($message)
         {
-            $response = Redirector::back($message);
-            $response->send();
-            exit();
+            session()->flash('message', $message);
+            $this->back();
         }
     };
 }
+
 
 
 
@@ -145,16 +158,33 @@ function old($key, $default = null)
  */
 function asset(string $path): string
 {
-    $baseUrl = $_ENV['APP_URL'];
+    $baseUrl = config('app.url');
     return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 }
 
 
 function url(string $path): string
 {
-    $baseUrl = $_ENV['APP_URL'];
+    $baseUrl = config('app.url');
     return rtrim($baseUrl, '/') . '/' . ltrim($path, '/');
 }
+
+
+function route(string $name, array $params = []): string
+{
+    $route = Route::getRouteByName($name);
+    if (!$route) {
+        throw new Exception("The route {$name} was not found.");
+    }
+
+    $url = $route['uri'];
+    foreach ($params as $key => $value) {
+        $url = str_replace("{{$key}}", $value, $url);
+    }
+
+    return url($url);
+}
+
 
 
 /**

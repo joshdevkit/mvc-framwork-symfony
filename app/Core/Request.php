@@ -2,15 +2,17 @@
 
 namespace App\Core;
 
-use InvalidArgumentException;
+use App\Core\Validations\UseErrors;
+use App\Core\Validations\UseValidationRules;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\Validator\Validation;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\ConstraintViolationList;
+
 
 class Request extends SymfonyRequest
 {
+    use UseErrors, UseValidationRules;
+
     public static function createFromGlobals(): static
     {
         return parent::createFromGlobals();
@@ -99,17 +101,13 @@ class Request extends SymfonyRequest
     }
 
 
-
     public function validate(array $rules): array
     {
         if (!$this->validateCsrfToken()) {
-            http_response_code(403);
-            $errorViewPath = __DIR__ . '/../../resources/views/errors/500.php';
-
-            if (file_exists($errorViewPath)) {
-                include $errorViewPath;
+            if (config('app.debug')) {
+                $this->returnGenericError();
             } else {
-                echo 'Error: CSRF validation failed!';
+                $this->returnForbiddenError();
             }
             exit();
         }
@@ -130,114 +128,5 @@ class Request extends SymfonyRequest
         }
 
         return $data;
-    }
-
-    protected function parseRules(array $rules): Assert\Collection
-    {
-        $constraints = [];
-        foreach ($rules as $field => $rule) {
-            $rulesArray = explode('|', $rule);
-            error_log("Rules on array: " . print_r($rulesArray, true));
-
-            $fieldConstraints = [];
-            $isRequired = false;
-            $isNullable = false;
-            foreach ($rulesArray as $r) {
-                if ($r === 'nullable') {
-                    $isNullable = true;
-                    $fieldConstraints[] = new Assert\Optional();
-                    break;
-                } elseif ($r === 'required') {
-                    if (!$isNullable) {
-                        $isRequired = true;
-                    }
-                } elseif ($r == 'email') {
-                    $fieldConstraints[] = new Assert\Email();
-                } elseif (preg_match('/min:(\d+)/', $r, $matches)) {
-                    $minLength = (int) $matches[1];
-                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($minLength) {
-                        if (!empty($value) && strlen($value) < $minLength) {
-                            $context->buildViolation("This value is too short. It should have $minLength characters or more.")
-                                ->addViolation();
-                        }
-                    });
-                } elseif (preg_match('/max:(\d+)/', $r, $matches)) {
-                    $maxlength = (int) $matches[1];
-                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($maxlength) {
-                        if (!empty($value) && strlen($value) > $maxlength) {
-                            $context->buildViolation("This value is too long. It should have $maxlength characters only.")
-                                ->addViolation();
-                        }
-                    });
-                } elseif ($r === 'image') {
-                    $fieldConstraints[] = new Assert\Image([
-                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/jpg', 'image/jfif', 'image/webp'],
-                        'mimeTypesMessage' => "Invalid file type selected",
-                    ]);
-                } elseif (preg_match('/mimes:([a-zA-Z0-9,_-]+)/', $r, $matches)) {
-                    $mimes = explode(',', $matches[1]);
-                    $mimes = array_map('trim', $mimes);
-                    if (!in_array('image', $rulesArray)) { // Check if "image" rule is already applied
-                        $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($mimes, $field) {
-                            if ($value && $value instanceof UploadedFile) {
-                                $fileMimeType = $value->getMimeType();
-                                $fileExtension = explode('/', $fileMimeType)[1] ?? '';
-                                if (!in_array($fileExtension, $mimes)) {
-                                    $context->buildViolation("Invalid file type selected")
-                                        ->addViolation();
-                                }
-                            }
-                        });
-                    }
-                } elseif (preg_match('/unique:(\w+),(\w+),(\d+)/', $r, $matches)) {
-                    $fieldConstraints[] = new Assert\Callback(function ($value, $context) use ($matches) {
-                        $table = $matches[1];
-                        $column = $matches[2];
-                        $excludeId = (int) $matches[3];
-
-                        if (Models::exists($table, $column, $value, $excludeId)) {
-                            $context->buildViolation("The $column has already been taken.")
-                                ->addViolation();
-                        }
-                    });
-                }
-            }
-
-            if ($isRequired && !$isNullable) {
-                $fieldConstraints[] = new Assert\NotBlank();
-            }
-
-
-
-            $constraints[$field] = $fieldConstraints;
-        }
-
-        return new Assert\Collection([
-            'fields' => $constraints,
-            'allowExtraFields' => true,
-        ]);
-    }
-
-
-    protected function formatValidationErrors(ConstraintViolationList $violations): array
-    {
-        $errors = [];
-        foreach ($violations as $violation) {
-            $field = trim($violation->getPropertyPath(), '[]');
-            $message = $violation->getMessage();
-            if ($message === "This value should not be blank.") {
-                $message = "$field is required";
-            }
-            if ($message === 'This value is not a valid email address.') {
-                $message = "$field is not a valid email address";
-            }
-
-            if ($message === "This field is missing.") {
-                $message = "$field is required";
-            }
-
-            $errors[$field][] = ucfirst($message);
-        }
-        return $errors;
     }
 }

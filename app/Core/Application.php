@@ -8,46 +8,12 @@ use eftec\bladeone\BladeOne;
 class Application
 {
     private static BladeOne $blade;
-    private array $models = [];
-    private array $views = [];
-    private array $controllers = [];
-
-    public function registerModel(string $name, $class)
-    {
-        $this->models[$name] = $class;
-    }
-
-    public function registerView(string $name, string $path)
-    {
-        $this->views[$name] = $path;
-    }
-
-    public function registerController(string $name, $class)
-    {
-        $this->controllers[$name] = $class;
-    }
-
-    public function getModel(string $name)
-    {
-        return $this->models[$name] ?? null;
-    }
-
-    public function getViewPath(string $name)
-    {
-        return $this->views[$name] ?? null;
-    }
-
-    public function getController(string $name)
-    {
-        return $this->controllers[$name] ?? null;
-    }
 
     public function setupBlade()
     {
-        $basePath = dirname(__DIR__, 2);
-        $viewsPath = $basePath . '/resources/views';
-        $layoutsPath = $viewsPath . '/layouts';
-        $cachePath = $basePath . '/storage/framework/cache';
+        $viewsPath =  RESOURCE_VIEW_PATH;
+        $layoutsPath = $viewsPath . RESOURCE_VIEW_LAYOUTS;
+        $cachePath = STORAGE_RESOURCES;
 
         if (!is_dir($cachePath)) {
             mkdir($cachePath, 0777, true);
@@ -86,8 +52,6 @@ class Application
     }
 
 
-
-
     public static function renderView(string $view, array $data = [])
     {
         try {
@@ -99,6 +63,9 @@ class Application
 
     public function boot()
     {
+
+
+
         $this->loadRoutes();
 
         if (session_status() == PHP_SESSION_NONE) {
@@ -119,8 +86,7 @@ class Application
 
     private function loadRoutes()
     {
-        //in publications of dependency change the value to 3
-        $routesPath = dirname(__DIR__, 2) . '/routes/web.php';
+        $routesPath = ROUTE_PATH;
 
         if (file_exists($routesPath)) {
             require_once $routesPath;

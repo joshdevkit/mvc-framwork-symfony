@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
+include_once __DIR__ . '/../bootstrap/index.php';
 
 use App\Core\Application;
 use App\Core\Database;

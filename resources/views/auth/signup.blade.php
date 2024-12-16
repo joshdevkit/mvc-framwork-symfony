@@ -12,19 +12,17 @@
                     </div>
 
                     <div class="card-body">
-
                         @if (session('errors'))
-                            <div class="alert alert-danger" role="alert">
-                                <ul class="mb-0">
-                                    @foreach (session('errors') as $messages)
-                                        @foreach ($messages as $message)
-                                            <li>{{ $message }}</li>
-                                        @endforeach
-                                    @endforeach
-                                </ul>
-                            </div>
+                            @foreach (session('errors') as $messages)
+                                @foreach ($messages as $key => $message)
+                                    <div class="notice notice-danger mb-2 p-2 ">
+                                        <strong>{{ $message }}</strong>
+                                    </div>
+                                @endforeach
+                            @endforeach
+
                         @endif
-                        <form method="POST" action="{{ url('signup') }}">
+                        <form method="POST" action="{{ route('auth.store') }}">
                             @csrf
                             <div class="mb-3">
                                 <label for="name" class="form-label">Full Name</label>

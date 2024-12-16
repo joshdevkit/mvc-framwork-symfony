@@ -12,7 +12,7 @@
         <hr class="my-4">
         <p>Explore the features, create models, and manage your application seamlessly.</p>
         <p>Developed By: {{ $dev }}</p>
-        <a class="btn btn-primary  mt-3" href="{{ url('/') }}" role="button">Learn More</a>
+        <a class="btn btn-primary  mt-3" href="{{ route('auth.show') }}" role="button">Learn More</a>
     </div>
 
 

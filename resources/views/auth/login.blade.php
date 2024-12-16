@@ -3,6 +3,7 @@
 @section('title', 'Sign In')
 
 @section('content')
+
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6 col-sm-8 col-sm-8">
@@ -10,20 +11,17 @@
                     <div class="card-header text-center">
                         <h2><i class="bi bi-box-arrow-in-right"></i> Sign In</h2>
                     </div>
-
                     <div class="card-body">
                         @if (session('errors'))
-                            <div class="alert alert-danger" role="alert">
-                                <ul class="mb-0">
-                                    @foreach (session('errors') as $messages)
-                                        @foreach ($messages as $message)
-                                            <li>{{ $message }}</li>
-                                        @endforeach
-                                    @endforeach
-                                </ul>
-                            </div>
+                            @foreach (session('errors') as $messages)
+                                @foreach ($messages as $key => $message)
+                                    <div class="notice notice-danger mb-2 p-2 ">
+                                        <strong>{{ $message }}</strong>
+                                    </div>
+                                @endforeach
+                            @endforeach
                         @endif
-                        <form method="POST" action="{{ url('signin') }}">
+                        <form method="POST" action="{{ route('authenticate') }}">
                             @csrf
 
                             <div class="mb-3">
@@ -41,7 +39,7 @@
                         </form>
 
                         <div class="mt-3 text-center">
-                            <p>Don't have an account? <a href="{{ url('signup') }}">Sign Up</a></p>
+                            <p>Don't have an account? <a href="{{ route('register') }}">Sign Up</a></p>
                         </div>
                     </div>
                 </div>

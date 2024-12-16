@@ -25,15 +25,15 @@ class HomeController extends Controller
         return response()->json(['user' => $user]);
     }
 
-    public function test(Request $request)
-    {
-        if ($request->hasHeader('X-CSRF-TOKEN')) {
-            return response()->json([
-                'message' => 'CSRF validation passed!',
-                'data' => $request->server->all()
-            ]);
-        }
+    // public function test(Request $request)
+    // {
+    //     if ($request->hasHeader('X-CSRF-TOKEN')) {
+    //         return response()->json([
+    //             'message' => 'CSRF validation passed!',
+    //             'data' => $request->server->all()
+    //         ]);
+    //     }
 
-        return response()->json(['error' => 'CSRF token not provided'], 400);
-    }
+    //     return response()->json(['error' => 'CSRF token not provided'], 400);
+    // }
 }

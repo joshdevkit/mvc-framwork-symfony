@@ -18,7 +18,7 @@ class AuthMiddleware implements Middleware
          * 3. If a user is authenticated, it calls the `$next` closure to pass the request to the next middleware or the controller.
          */
         if (!auth()->user()) {
-            return redirect()->back();
+            return redirect()->route('home');
         }
 
         return $next($request);

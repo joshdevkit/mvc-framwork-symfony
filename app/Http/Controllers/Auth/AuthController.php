@@ -28,7 +28,7 @@ class AuthController extends Controller
 
         try {
             if (Auth::attempt($validated['email'], $validated['password'])) {
-                return redirect()->to('/');
+                return redirect()->back()->route('dashboard');
             } else {
                 session(['errors' => ['email' => ['Invalid credentials provided']]]);
                 Redirector::back()->send();
@@ -50,15 +50,15 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed'
         ]);
+        // dd($validated);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password'])
         ]);
-        // session(['message' => 'Account Created Successfully']);
         Auth::attempt($validated['email'], $validated['password']);
-        return redirect()->to('/');
+        return redirect()->back()->to_route('dashboard');
     }
 
 
