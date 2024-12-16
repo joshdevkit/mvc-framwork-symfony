@@ -6,6 +6,7 @@ use App\Core\Models;
 
 class User extends Models
 {
+    // attribute of users table
     protected $fillable = [
         'name',
         'email',
@@ -13,10 +14,19 @@ class User extends Models
         'avatar'
     ];
 
+    /**
+     * Apply cast to the password as hidden
+     *
+     * @var array
+     */
     protected $hidden = [
         'password',
     ];
-
+    /**
+     * apply cast to the password as hashed
+     *
+     * @var array
+     */
     protected $casts = [
         'password' => 'hashed',
     ];

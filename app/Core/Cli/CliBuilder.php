@@ -77,7 +77,7 @@ class CliBuilder
 
 namespace App\Models;
 
-use joshdevjp\mvccore\Models;
+use App\Core\Models;
 
 class {$modelName} extends Models
 {

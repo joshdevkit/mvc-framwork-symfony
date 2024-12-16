@@ -63,9 +63,6 @@ class Application
 
     public function boot()
     {
-
-
-
         $this->loadRoutes();
 
         if (session_status() == PHP_SESSION_NONE) {

@@ -58,7 +58,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password'])
         ]);
         Auth::attempt($validated['email'], $validated['password']);
-        return redirect()->back()->to_route('dashboard');
+        return redirect()->back()->route('dashboard');
     }
 
 

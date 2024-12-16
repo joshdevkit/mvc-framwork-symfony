@@ -74,6 +74,7 @@ class Schema
      */
     private static function execute($sql)
     {
+
         try {
             self::$pdo->exec($sql);
             // echo "SQL executed successfully.\n";
