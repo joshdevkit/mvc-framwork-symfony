@@ -3,15 +3,18 @@
 namespace App\Core;
 
 use App\Core\Middleware\MiddlewareStack;
+use App\Core\Traits\BladeDirectivesTrait;
 use eftec\bladeone\BladeOne;
 
 class Application
 {
+    use BladeDirectivesTrait;
+
     private static BladeOne $blade;
 
     public function setupBlade()
     {
-        $viewsPath =  RESOURCE_VIEW_PATH;
+        $viewsPath = RESOURCE_VIEW_PATH;
         $layoutsPath = $viewsPath . RESOURCE_VIEW_LAYOUTS;
         $cachePath = STORAGE_RESOURCES;
 
@@ -19,49 +22,47 @@ class Application
             mkdir($cachePath, 0777, true);
         }
 
+        // Initialize and assign the Blade instance to the static property
         self::$blade = new BladeOne([$viewsPath, $layoutsPath], $cachePath, BladeOne::MODE_DEBUG);
 
-        if (file_exists($cachePath)) {
-            array_map('unlink', glob("$cachePath/*"));
-        }
-
-        self::$blade->directive('csrf', function () {
-            $csrfToken = csrf_token();
-            return "<?php echo '<input type=\"hidden\" name=\"_token\" value=\"' . htmlspecialchars('$csrfToken') . '\">'; ?>";
-        });
-
-        self::$blade->directive('auth', function () {
-            return "<?php if (isset(\$_SESSION['user_id'])): ?>";
-        });
-
-        self::$blade->directive('endauth', function () {
-            return "<?php endif; ?>";
-        });
-
-        self::$blade->directive('error', function ($field) {
-            return "<?php if (isset(\$_SESSION['errors']) && isset(\$_SESSION['errors'][$field])): ?>
-                    <?php foreach (\$_SESSION['errors'][$field] as \$message): ?>
-                        <div class='invalid-feedback mt-1'><?= \$message ?></div>
-                    <?php endforeach; ?>
-                <?php endif; ?>";
-        });
-
-        self::$blade->directive('enderror', function () {
-            return "";
-        });
+        // Register custom Blade directives
+        /**
+         * @var BladeOne $blade The BladeOne instance where the directives will be registered.
+         * @return void
+         */
+        self::registerBladeDirectives(self::$blade);
     }
-
 
     public static function renderView(string $view, array $data = [])
     {
         try {
+            // we can add a control flow to check if blade initialze first, nor throw exception
+            /**
+             * if (!isset(self::$blade)) {
+             * throw new \Exception("BladeOne has not been initialized. Call setupBlade() first.");
+             * }
+             */
+            // but in this case we don't do that since its already define on the method registerBladeDirectives
+            // Since self::$blade is a static property, you don't need to reinitialize it in every method.
             echo self::$blade->run($view, $data);
         } catch (\Exception $e) {
             echo "BladeOne Rendering Error: " . $e->getMessage();
         }
     }
 
-    public function boot()
+    /**
+     * Bootstraps the application and handles the request lifecycle.
+     *
+     * This method performs the following tasks:
+     * 1. Loads all routes.
+     * 2. Initializes the session if not already started.
+     * 3. Sets up BladeOne for view rendering.
+     * 4. Processes the middleware stack.
+     * 5. Initializes and dispatches the route to handle the incoming request.
+     *
+     * @return void
+     */
+    public function run()
     {
         $this->loadRoutes();
 

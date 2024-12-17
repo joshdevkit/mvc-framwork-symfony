@@ -3,8 +3,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Core\Hash;
-use App\Core\Request;
+
 use App\Models\User;
 use App\Http\Controllers\Controller;
 

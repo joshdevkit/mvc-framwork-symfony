@@ -12,6 +12,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/auth/signin', [AuthController::class, 'login'])->name('auth.show');
     Route::post('/auth/signin', [AuthController::class, 'authenticate'])->name('authenticate');
     Route::post('/auth/register', [AuthController::class, 'storeUser'])->name('auth.store');
+    Route::get('/auth/recovery', [AuthController::class, 'recover'])->name('recover');
 });
 
 

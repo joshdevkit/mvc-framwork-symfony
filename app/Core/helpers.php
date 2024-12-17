@@ -2,7 +2,6 @@
 
 use App\Core\Application;
 use App\Core\Auth;
-use App\Core\Exceptions\MissingRouteParamsException;
 use App\Core\Redirector;
 use App\Core\Response;
 use App\Core\Route;
@@ -103,6 +102,13 @@ function session($key = null, $default = null)
     }
 }
 
+function check($key = null)
+{
+    if (isset($_SESSION[$key])) {
+        return $_SESSION;
+    }
+}
+
 /**
  * Forget a session variable.
  *
@@ -134,20 +140,6 @@ function old($key, $default = null)
     return $_SESSION['old_input'][$key] ?? $default;
 }
 
-
-// /**
-//  * Display validation errors for a given field.
-//  *
-//  * @param string $field
-//  */
-// function errors($field)
-// {
-//     if (session('errors') && isset(session('errors')[$field])) {
-//         foreach (session('errors')[$field] as $error) {
-//             echo "<div class='invalid-feedback mt-1'>{$error}</div>";
-//         }
-//     }
-// }
 
 
 /**
@@ -199,7 +191,7 @@ function config(string $key, $default = null)
     static $config = [];
 
     if (empty($config)) {
-        foreach (glob(__DIR__ . '/../../config/*.php') as $file) {
+        foreach (glob(BASE_PATH . 'config/*.php') as $file) {
             $name = basename($file, '.php');
             $config[$name] = require $file;
         }
@@ -233,7 +225,7 @@ function env(string $key, $default = null)
     static $env = [];
 
     if (empty($env)) {
-        $lines = file(__DIR__ . '/../../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $lines = file(BASE_PATH . '.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             if (strpos(trim($line), '#') === 0) {
                 continue;

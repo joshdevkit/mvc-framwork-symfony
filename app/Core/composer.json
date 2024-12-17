@@ -1,8 +1,8 @@
 {
-    "name": "joshdev-jp/mvccore",
+    "name": "jshpch/mvc-core",
     "autoload": {
         "psr-4": {
-            "joshdevjp\\mvccore\\": "."
+            "Mascarade\\Foundations\\Core\\": "."
         }
     },
     "authors": [

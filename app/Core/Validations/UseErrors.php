@@ -186,4 +186,71 @@ trait UseErrors
         </body>
         </html>';
     }
+
+
+    public function returnMethodNotFound($method, $controller)
+    {
+        http_response_code(404);
+        echo '
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>404 - METHOD NOT FOUND</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background: #f4f4f4;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    color: #333;
+                }
+                .error-container {
+                    text-align: center;
+                    background: #fff;
+                    padding: 30px 40px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }
+                .error-container h1 {
+                    font-size: 80px;
+                    margin: 0;
+                    color: #e74c3c;
+                }
+                .error-container h2 {
+                    font-size: 24px;
+                    margin: 10px 0;
+                    color: #333;
+                }
+                .error-container p {
+                    font-size: 16px;
+                    margin: 15px 0;
+                    color: #555;
+                }
+                .error-container a {
+                    text-decoration: none;
+                    color: #3498db;
+                    font-weight: bold;
+                }
+                .error-container a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="error-container">
+                <h1>404</h1>
+                <h3>Method ' . $method . ' not found at</h3>
+                <h4>' . $controller . '</h4>
+                <p><a href="/">Return to Home</a></p>
+            </div>
+        </body>
+        </html>
+        ';
+    }
 }

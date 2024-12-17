@@ -2,17 +2,17 @@
 
 namespace App\Core;
 
+use App\Core\Traits\Dispatcher;
 use App\Core\Validations\UseErrors;
 use App\Http\Kernel;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
 
 class Route
 {
-    use UseErrors;
-    private static $dispatcher;
-    public static $routes = [];
+    use UseErrors, Dispatcher;
+
+
     protected static $middleware = [];
 
     public static function get($uri, $action)
@@ -93,65 +93,7 @@ class Route
         return null; // Return null if not found
     }
 
-    /**
-     * Dispatch requests and handle middleware
-     */
-    public static function dispatch()
-    {
-        $request = SymfonyRequest::createFromGlobals();
-        $customRequest = Request::createFromSymfonyRequest($request);
 
-        $requestUri = $request->getPathInfo();
-        $requestMethod = $request->getMethod();
-
-        $routeInfo = self::$dispatcher->dispatch($requestMethod, $requestUri);
-
-        switch ($routeInfo[0]) {
-            case \FastRoute\Dispatcher::NOT_FOUND:
-                if (config('app.debug')) {
-                    self::send404();
-                } else {
-                    self::GenericError();
-                }
-                break;
-
-            case \FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                $allowedMethods = $routeInfo[1][0];
-                $httpMethod = $_SERVER['REQUEST_METHOD'];
-                $controllName = self::$routes[3]['action'][0];
-                $uRi = self::$routes[3]['uri'];
-                if (config('app.debug')) {
-                    self::GenericError();
-                } else {
-                    self::send405($httpMethod, $allowedMethods, $controllName, $uRi);
-                }
-                break;
-
-            case \FastRoute\Dispatcher::FOUND:
-
-                $handler   = $routeInfo[1];
-                $vars      = $routeInfo[2];
-
-                $route = array_filter(self::$routes, fn($r) => $r['action'] === $handler);
-                $route = array_shift($route);
-
-                $middlewares = $route['middleware'] ?? [];
-                $kernel = new Kernel;
-
-                $next = function ($request) use ($handler, $vars, $customRequest) {
-                    self::invokeController($handler, $vars, $customRequest);
-                };
-
-                foreach ($middlewares as $middleware) {
-                    $next = function ($request) use ($middleware, $next) {
-                        return self::invokeMiddleware($middleware, $request, $next);
-                    };
-                }
-
-                $kernel->handle($customRequest, $next);
-                break;
-        }
-    }
 
     private static function invokeController($action, $vars, $customRequest = null)
     {
@@ -159,7 +101,11 @@ class Route
         $controller = new $controller;
 
         if (!method_exists($controller, $method)) {
-            throw new \Exception("Method {$method} not found in controller " . get_class($controller));
+            if (!config('app.debug')) {
+                self::GenericError();
+            } else {
+                self::sendMethodNotFoundError($method, get_class($controller));
+            }
         }
 
         $arguments = [...array_values($vars), $customRequest];
@@ -171,7 +117,6 @@ class Route
     {
         $kernel = new Kernel();
         $routeMiddleware = $kernel->getRouteMiddleware();
-
         if (isset($routeMiddleware[$middleware])) {
             $middlewareClass = $routeMiddleware[$middleware];
 
@@ -204,6 +149,14 @@ class Route
     {
         $instance = new self();
         $instance->returnGenericError();
+        exit();
+    }
+
+
+    public static function sendMethodNotFoundError($method, $controller)
+    {
+        $instance = new self();
+        $instance->returnMethodNotFound($method, $controller);
         exit();
     }
 }

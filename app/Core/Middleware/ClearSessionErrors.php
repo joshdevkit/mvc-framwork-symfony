@@ -8,35 +8,39 @@ class ClearSessionErrors
     {
         $response = $next($request);
 
-        if (isset($_SESSION['errors_displayed']) && $_SESSION['errors_displayed']) {
+        // if (isset($_SESSION['errors_displayed']) && $_SESSION['errors_displayed']) {
+        //     session_forget('errors');
+        //     session_forget('errors_displayed');
+        // }
+        if (check('errors_displayed')  && check('errors_displayed')) {
             session_forget('errors');
             session_forget('errors_displayed');
         }
 
-        if (isset($_SESSION['message_set'])  && $_SESSION['message_set']) {
+        if (check('message_set') && check('message_set')) {
             session_forget('message');
             session_forget('message_set');
         }
 
-        if (isset($_SESSION['old_input_retained']) && $_SESSION['old_input_retained']) {
+        if (check('old_input_retained') && check('old_input_retained')) {
             session_forget('old_input');
             session_forget('old_input_retained');
         }
 
-        if (isset($_SESSION['message_displayed']) && $_SESSION['message_displayed']) {
+        if (check('message_displayed') && check('message_displayed')) {
             session_forget('message');
             session_forget('message_displayed');
         }
 
-        if (isset($_SESSION['errors'])) {
+        if (check('errors')) {
             $_SESSION['errors_displayed'] = true;
         }
 
-        if (isset($_SESSION['old_input'])) {
+        if (check('old_input')) {
             $_SESSION['old_input_retained'] = true;
         }
 
-        if (isset($_SESSION['message'])) {
+        if (check('message')) {
             $_SESSION['message_displayed'] = true;
         }
 

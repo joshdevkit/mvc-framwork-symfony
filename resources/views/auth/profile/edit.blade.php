@@ -22,7 +22,7 @@
 
         .camera-icon {
             bottom: -12px;
-            left: 12px;
+            left: 4rem;
             position: absolute;
             background-color: #fff;
             border-radius: 50%;
